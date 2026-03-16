@@ -1,0 +1,452 @@
+# MoneyMsg Partner Requirements Guide
+
+## Overview
+
+MoneyMsg uses a **multi-provider financial infrastructure stack**.
+
+Each partner performs a specific role in the system:
+
+| Provider | Function                                         |
+| -------- | ------------------------------------------------ |
+| Alviere  | Wallet ledger, compliance, KYC/AML, FBO accounts |
+| Plaid    | External account authentication and tokenization |
+| TabaPay  | Debit card rails (load and payout)               |
+| Dwolla   | Bank rails (RTP/FedNow/ACH)                      |
+
+All providers require onboarding before production access.
+
+---
+
+# 1. Alviere Requirements
+
+Alviere is the **primary regulated financial infrastructure partner**.
+
+They provide:
+
+* FBO wallet accounts
+* KYC / AML compliance
+* money transmitter licensing coverage
+* ledger operations
+* internal transfers
+
+### Corporate Requirements
+
+Typical onboarding requirements include:
+
+* legal entity formation
+* EIN
+* certificate of formation
+* operating agreement
+* company address
+* website description of services
+* privacy policy
+* terms of service
+
+Alviere will perform **business KYB** on the platform operator.
+
+---
+
+### Compliance Requirements
+
+Alviere operates under regulated banking partners and therefore requires:
+
+* Customer Identification Program (CIP)
+* Know Your Customer (KYC)
+* Anti-Money Laundering (AML)
+* OFAC sanctions screening
+
+The platform must collect:
+
+| Data            | Purpose                |
+| --------------- | ---------------------- |
+| full legal name | identity verification  |
+| date of birth   | age and identity       |
+| address         | residency verification |
+| SSN             | identity validation    |
+| phone/email     | communication          |
+
+The platform **must not store SSN locally**.
+It must proxy to Alviere.
+
+---
+
+### Product Requirements
+
+Alviere will require a defined product specification including:
+
+* user onboarding flow
+* wallet functionality
+* transaction types
+* limits and controls
+* fraud prevention strategy
+
+Expected documentation:
+
+* product overview
+* architecture diagram
+* transaction flows
+* risk controls
+
+---
+
+### Technical Requirements
+
+Alviere requires:
+
+* secure API integration
+* HTTPS TLS 1.2+
+* OAuth or API key authentication
+* webhook endpoint support
+
+Environment setup includes:
+
+```
+ALVIERE_API_KEY
+ALVIERE_API_URL
+```
+
+---
+
+### Operational Requirements
+
+The platform must implement:
+
+* transaction monitoring
+* suspicious activity reporting escalation
+* user support processes
+* account freeze capability
+
+---
+
+# 2. Plaid Requirements
+
+Plaid provides **account authentication and tokenization**.
+
+They do not move money themselves.
+
+---
+
+### Corporate Requirements
+
+Plaid onboarding requires:
+
+* legal entity
+* website
+* use-case description
+* privacy policy
+* terms of service
+
+They evaluate:
+
+* data usage
+* financial product category
+* regulatory exposure
+
+---
+
+### Product Requirements
+
+The application must describe how Plaid data will be used.
+
+For MoneyMsg:
+
+```
+Account authentication
+Processor token generation
+Funding source linking
+```
+
+Plaid typically requires:
+
+* screenshots of linking flow
+* user consent language
+* data usage explanation
+
+---
+
+### Compliance Requirements
+
+Plaid requires adherence to:
+
+* user consent requirements
+* data minimization policies
+* secure storage of access tokens
+
+Prohibited behaviors include:
+
+* storing bank credentials
+* displaying full account numbers
+
+---
+
+### Technical Requirements
+
+Required API calls:
+
+```
+/link/token/create
+/item/public_token/exchange
+/processor/token/create
+```
+
+Required environment variables:
+
+```
+PLAID_CLIENT_ID
+PLAID_SECRET
+PLAID_ENV_URL
+```
+
+---
+
+### Security Requirements
+
+The platform must ensure:
+
+* TLS encryption
+* secure token storage
+* token rotation capability
+
+Access tokens must never be exposed to clients.
+
+---
+
+# 3. TabaPay Requirements
+
+TabaPay provides **debit card network connectivity**.
+
+They operate on:
+
+* Visa Direct
+* Mastercard Send
+
+---
+
+### Corporate Requirements
+
+TabaPay onboarding requires:
+
+* KYB verification
+* business registration
+* ownership disclosure
+* financial product description
+
+Because funds move over card networks, risk review is extensive.
+
+---
+
+### Compliance Requirements
+
+TabaPay will evaluate:
+
+* fraud prevention controls
+* transaction limits
+* chargeback handling
+* dispute processes
+
+They may require:
+
+* fraud monitoring
+* velocity limits
+* transaction logging
+
+---
+
+### Technical Requirements
+
+Integration requires:
+
+* secure API credentials
+* card transaction endpoints
+* webhook support
+
+Environment variables:
+
+```
+TABAPAY_API_KEY
+TABAPAY_API_URL
+```
+
+---
+
+### Payment Capabilities
+
+Supported operations include:
+
+| Operation        | Network                       |
+| ---------------- | ----------------------------- |
+| AFT (pull funds) | Visa / Mastercard             |
+| OCT (push funds) | Visa Direct / Mastercard Send |
+
+---
+
+### Risk Controls
+
+Card networks require:
+
+* transaction velocity limits
+* fraud scoring
+* dispute resolution process
+
+---
+
+# 4. Dwolla Requirements
+
+Dwolla provides **bank-to-bank payment rails**.
+
+Supported networks:
+
+* RTP
+* FedNow
+* ACH fallback
+
+---
+
+### Corporate Requirements
+
+Dwolla onboarding requires:
+
+* business verification
+* beneficial owner disclosure
+* compliance review
+* product documentation
+
+---
+
+### Compliance Requirements
+
+Dwolla enforces:
+
+* KYC compliance
+* AML monitoring
+* OFAC checks
+* transaction reporting
+
+Many of these are delegated to the BaaS partner (Alviere).
+
+---
+
+### Technical Requirements
+
+Integration requires:
+
+* OAuth authentication
+* transfer APIs
+* webhook endpoints
+
+Environment variables:
+
+```
+DWOLLA_APP_KEY
+DWOLLA_APP_SECRET
+DWOLLA_ENV_URL
+```
+
+---
+
+### Payment Operations
+
+Supported flows:
+
+| Operation        | Description          |
+| ---------------- | -------------------- |
+| bank load        | pull funds from bank |
+| bank cash-out    | push funds to bank   |
+| instant transfer | RTP/FedNow           |
+
+---
+
+### Webhook Requirements
+
+Dwolla sends events such as:
+
+```
+transfer_completed
+transfer_failed
+transfer_cancelled
+```
+
+The backend must verify signatures.
+
+---
+
+# 5. Shared Infrastructure Requirements
+
+All partners require common infrastructure.
+
+### Backend Requirements
+
+* TLS encryption
+* secure credential storage
+* audit logging
+* idempotent transaction processing
+
+---
+
+### Data Protection
+
+Sensitive data must never be stored locally:
+
+```
+SSN
+bank credentials
+card numbers
+```
+
+Allowed to store:
+
+```
+processor_token
+account_mask
+institution_name
+```
+
+---
+
+### Monitoring
+
+Required operational systems include:
+
+* transaction logging
+* fraud monitoring
+* alerting
+* reconciliation
+
+---
+
+# 6. Production Readiness Checklist
+
+Before launch, the platform must demonstrate:
+
+### Compliance
+
+* KYC flow implemented
+* AML monitoring defined
+* OFAC screening enabled
+
+### Technical
+
+* API integration tested
+* webhooks verified
+* idempotency implemented
+
+### Operational
+
+* support contact defined
+* dispute handling process
+* transaction monitoring
+
+---
+
+# 7. Recommended Partner Activation Order
+
+Implementation should occur in this order:
+
+1. **Alviere** – wallet infrastructure
+2. **Plaid** – account authentication
+3. **TabaPay** – card rails
+4. **Dwolla** – bank rails
+
+This order reduces integration complexity.
+
+---

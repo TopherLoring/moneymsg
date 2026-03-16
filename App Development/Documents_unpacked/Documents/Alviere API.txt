@@ -1,0 +1,5711 @@
+logo
+Search...
+Introduction
+Authentication
+Accounts
+Account Wallet
+Tokenization
+Card Processing
+Bank Processing
+Card Issuance
+Reporting
+Remittances
+Treasury Management
+Webhooks
+Subscriptions
+Authentication
+Processing
+How to subscribe
+redocly logoAPI docs by Redocly
+Alviere API (0.0.3)
+Download OpenAPI specification:Download
+
+E-mail: support@alviere.com
+URL: http://alviere.com/
+Introduction
+Welcome to Alviere!
+
+This page provides developer API documentation for integrating into the Alviere platform.
+
+Notes
+All times are in UTC time standard
+All date fields use the RFC 3339 version of the ISO-8601 standard format
+Authentication
+Alviere uses the openid authentication standard.
+
+This section details what is required for authentication and access to the Alviere endpoints.
+
+Get API Credentials
+In order to connect to the API, you’ll need to have authentication credentials that should be provided by your Relationship Manager.
+
+If you don’t have authentication credentials yet, please request them by sending an email from your company email to support@alviere.com.
+
+Api Authentication
+In order to authenticate to the platform you'll need the following information:
+
+client_id: Your unique client ID in the Alviere platform
+client_secret: Your API key used to connect to the APIs; you may have more than one secret for your account
+username: The username that will be used for authentication
+password: The password that will be used for authentication
+Authentication Flow
+The following details the flow for authentication:
+
+To call any of the APIs in the platform you'll need an access token, so this is always the service you need to call first
+The response object from the authentication endpoint will return multiple fields as per the JWT specification. Below are the most relevant:
+access_token: The token that is used for all subsequent calls to the API
+expires_in: The time limit after which the access token will expire; in seconds
+On all subsequent calls to the API, you'll need to include a header in the HTTP request with that information.
+
+The format of the header is Authorization: Bearer [you_access_token]
+Request an access token
+Authenticates the user and returns an access token to be used in every subsequent API request
+
+Request Body schema: application/x-www-form-urlencoded
+required
+client_id
+required
+string
+Your unique Client ID in the Alviere platform
+
+client_secret
+required
+string
+The API key for authentication in the Alviere platform
+
+grant_type
+required
+string
+To authenticate to the API always use client_credentials in this field
+
+Responses
+200 The request was successful and the user is authenticated. The JWT token that is returned should be used in every subsequent call to the API.
+400 The request for authentication was denied. The provided credentials are not valid for system access.
+
+post
+/auth/realms/customers/protocol/openid-connect/token
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request POST \
+  --url https://api.snd.alviere.com/auth/realms/customers/protocol/openid-connect/token \
+  --header 'content-type: application/x-www-form-urlencoded'
+Response samples
+200
+Content type
+application/json
+
+Copy
+{
+"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...",
+"expires_in": 300,
+"refresh_expires_in": 1800,
+"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUrw...",
+"token_type": "bearer",
+"not-before-policy": 0,
+"session_state": "8c573816-96b1-4dc3-bce8-e59fd2bf9dec",
+"scope": null
+}
+Request a web session
+This generates a secure and authenticated session under your account to be used with the Web SDK
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+account_uuid	
+string <uuid> (Account UUID)
+Responses
+201 The request was successful and the user is authenticated. The Session ID that is returned should be used to instantiate our WEB SDK's.
+400 Bad Request
+404 Not Found
+
+post
+/v1/sdk/auth/generate/web/session
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e"
+}
+Response samples
+201400404
+Content type
+application/json
+
+Copy
+{
+"session_id": "1ffd059c-17ea-40a8-8aef-70fd0307db82"
+}
+Request a mobile token
+This generates a secure and authenticated token under your account to be used with the Mobile SDK
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+account_uuid	
+string <uuid> (Account UUID)
+with_plaid_sdk_token	
+boolean
+Responses
+201 The request was successful and the user is authenticated. The JWT token that is returned should be used to instantiate our Mobile SDK's.
+400 Bad Request
+404 Not Found
+503 Service Unavailable
+
+post
+/v1/sdk/auth/generate/mobile/token
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"with_plaid_sdk_token": true
+}
+Response samples
+201400404503
+Content type
+application/json
+
+Copy
+{
+"auth_token": "string",
+"plaid_sdk_token": "string",
+"plaid_sdk_token_expires_at": "2019-08-24T14:15:22Z"
+}
+Accounts
+This section outlines the integration with Alviere to create and manage your customers and users, and to perform KYC and Identity Verification on them.
+
+A user account is a representation of a customer of your program, which is required for the following Alviere products:
+
+FBO Accounts - Alviere provides FDIC-insured bank accounts through its banking partners so you can provide full banking services to your customers. The funds are held for benefit of your customers and Alviere manages all day-to-day activities of the banking program, so you can focus on further extending your business offering.
+Stored Value Accounts - Alviere provides e-wallet / stored value accounts through its banking partners. This means any user account can store money in an e-wallet and easily transfer it from e-wallet to e-wallet, or to/from payment methods.
+Direct Deposit Accounts - With Alviere's FDIC-insured FBOs and/or stored value account services, you can provide your customers with a DDA routing number where they can deposit their salaries or receive ACH payments from external sources, giving you another touchpoint for promotional and revenue opportunities.
+User accounts are created and validated in the Alviere platform in stages. Each stage provides different permissions to what actions the user can perform within the Alviere platform.
+
+KYC and Identity Verification
+KYC and Identity Verification within the Alviere platform is a multi-stage process and is, by nature, the validations that need to be performed as an asynchronous process. During this process the user account will transition between several statuses. Please check the User Status section for more details.
+
+When submitting a request for a new user account, you must provide all of the relevant information that is defined for your program, including name, date of birth, address, email address, phone number, and Social Security Number, depending on the products you are enabling through the Alviere platform. This information must be present on the payload of your user creation API request.
+
+User Status
+The user status field indicates the current status of your users in the Alviere platform.
+
+Some statuses are internal and represent the current stage in the identity verification process, while other statuses represent the need to obtain additional information from the customer or that a manual review of the identity is required.
+
+The following statuses are possible for users in the Alviere platform:
+
+Status	Description
+CREATED	Prior to KYC and Identity Verification checks, this is the status of a user account once you submit a successful user creation request.
+ACTIVE	If the user is fully active in the system, their status will be ACTIVE. In some cases, the active status does not mean that the user will have full access to all the products provided by Alviere.
+INACTIVE	This status indicates that all permissions to access the system are currently revoked and the user will not be able to perform any actions in the Alviere platform until you choose to reactivate the user account.
+PROCESSING	This status indicates that identity verification is in progress; no action is required while the user account is in this status.
+PENDING_USER	This status indicates that further action is required from the user. This status could occur due to missing or incorrect data on the user's profile such as an address or Social Security Number. For more information, see the Pending User Status Reasons section below.
+MANUAL_REVIEW	This status indicates that the user account is currently under manual review by an operator. The stage property will indicate why the user account is under manual review (e.g. if stage: "FRAUD" this means that the account_abuse score was too high and needs to be validated by the operator)
+REJECTED	This status indicates the user account has been rejected by the platform, either manually or automatically. The reason for the rejection will be returned on the reason property of the user.
+DELETED	This status indicates the user account has been deleted and removed from the platform. The user account data will still be present in the system, but the accout cannot be reinstated. If you wish to temporarily remove access to a user account, you should change the status to INACTIVE instead
+Processing Stages
+The status of pending verification applies to users that have not yet been completely identified.
+
+The possible status reason for the pending verification stage property are:
+
+Stage	Description
+FRAUD	This stage indicates that the fraud check internal process is in progress.
+ADDRESS	This stage indicates that the address provided by the user is being validated.
+IDENTITY	This stage indicates that the identity verification process is being performed. Information such as the date of birth, address, and/or Social Security Number are being matched against public and platform-private records for accuracy.
+DOCUMENT	This stage indicates that the photo identification, provided by the user to validate their identity, is being processed.
+SANCTIONS	This stage indicates that the internal process of Sanctions and Negative News screening is not complete.
+(empty)	This stage indicates that the user has not started the KYC validation or is on-boarded and there's no more stages to execute.
+User Status Reasons
+The status_reason field provides a descriptive reason for the current status of the user.
+
+If the status is PENDING_USER, it means more information is required from the user in order to proceed with the Identity Verification process. The following status reasons can occur for this status:
+
+Status Reason	Description
+INVALID_NAME	The first and/or last name provided are not valid and one or both need to be re-submitted.
+INVALID_DOB	The provided date of birth is not valid; this could happen for programs where there is a minimum age requirement or the date of birth does not match the public record information on the user.
+INVALID_ADDRESS	The user has provided an address that is invalid and needs to be re-submitted.
+INVALID_PHONE	The user has provided a phone that is invalid and needs to be re-submitted.
+INVALID_LAST_4_SSN	The user has provided the last 4 digits of their Social Security Number that could not be matched against public and platform-private records. This will generally result in the user account being placed in status_reason: 'REQUIRES_FULL_SSN'. Note: This status is only valid for US consumers.
+INVALID_SSN	The user has provided their Social Security Number that could not be matched against public and platform-private records. This will generally result in the user account being placed in status_reason: 'REQUIRES_FULL_SSN'. Note: This status is only valid for US consumers.
+REQUIRES_LAST_4_SSN	The user is required to provide the last 4 digits of their Social Security Number in order to proceed with the identity verification process. This status usually happens when it was not possible to lookup the last 4 digits of their SSN from public records. Note: This status is only valid for US consumers.
+REQUIRES_FULL_SSN	The user is required to provide their full 9-digit Social Security Number in order to proceed with the identity verification process. This status usually happens when it was not possible to lookup the full SSN from public records. Note: This status is only valid for US consumers.
+INVALID_DOSSIER	The user has provided a dossier that is invalid and needs to be re-submitted.
+EXPIRED_DOCUMENT	The user has provided a document that is expired. A valid document needs to be submitted to proceed with the identity verification process.
+If the status is REJECTED, the user account either failed some automated checks or was manually rejected by an Operator from the Alviere platform. The following status reasons can occur for this status:
+
+Status Reason	Description
+NO_IDENTITY_MATCH	The user has failed to provide information to validate their identity.
+SANCTIONED_USER	The user has been positively identified with OFAC Sanctions or Negative News.
+FRAUD	The user has been marked fraudulent; for example, a Chargeback was filed for this account and the operator has marked it as fraud.
+CUSTOM	The user was rejected and the operator has provided a custom description for the rejection.
+Dossiers
+The dossier structure of the User Account is an essential part of Identity Management. In most programs enabled by Alviere, documental identification might be required to enable the full set of services for end users. When a document is required in order to proceed, the Pending User Status will be REQUIRES_PHOTO_ID.
+
+Dossiers need to be validated through external partners of Alviere; this process is also asynchronous. The following dossier statuses are applied:
+
+Dossier Status	Description
+CREATED	This is the status of a dossier once it has been submitted through the API indicating that the dossier is created.
+PENDING	This status indicates that the dossier is under verification.
+MANUAL_REVIEW	This status indicates that the dossier is under manual verification.
+VERIFIED	This status indicates that the dossier has been approved by the system and the user has been positively identified.
+REJECTED	This status indicates that the dossier has been rejected. Possible causes range from false documents to bad quality of photos.
+FAILED	This status indicates that the dossier has been failed. This happens when the documents format is invalid.
+EXPIRED	This status indicates that the dossier submitted has expired and the user account has been placed back in PENDING_USER status in order for the user to submit documentation with a valid expiration date.
+DELETED	This status indicates that the dossier is deleted.
+Add Account
+Creates a user account in the system.
+
+This service will automatically trigger the KYC and Identity Management process.
+
+Please note that a user account cannot be duplicated within the same business account; a user is considered duplicated when the same external_id is provided.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+external_id
+required
+string
+The ID of this user in your own platform. This will be associated with this account and can be used to identify the account as well as protect our API against duplicate accounts.
+
+NOTE: This field MUST be unique. Any subsequent Create Users with same external_id will fail with a HTTP 409.
+
+personal_information
+required
+object
+This structure contains the personal information of a user account.
+
+primary_address	
+object
+The Primary address for this user account.
+
+Notes:
+
+If you do not pass this field, you have to call the Add Address aftewards to add the primary address for this account
+Responses
+201 The user account was successfully created in the system and the KYC and Identity Management processes has been kicked off.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+409 Conflict on the field external_id
+
+post
+/v1/accounts
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"external_id": "string",
+"personal_information": {
+"first_name": "John",
+"middle_name": "Smith",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"ssn": "123456789",
+"phone_number": "+19176159179",
+"email_address": "john.doe@alviere.com"
+},
+"primary_address": {
+"label": "Home Address",
+"address": {}
+}
+}
+Response samples
+201400401403409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"type": "CONSUMER",
+"status": "CREATED",
+"stage": "FRAUD",
+"status_reason": "INVALID_DOB",
+"external_id": "string",
+"personal_information": {
+"first_name": "John",
+"middle_name": "Smith",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"ssn": "123456789",
+"phone_number": "+19176159179",
+"email_address": "john.doe@alviere.com"
+},
+"addresses": [
+{}
+]
+}
+Get Account
+Gets the user account details, in its current status.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The user account was successfully returned.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/{account_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"type": "CONSUMER",
+"status": "CREATED",
+"stage": "FRAUD",
+"status_reason": "INVALID_DOB",
+"external_id": "string",
+"personal_information": {
+"first_name": "John",
+"middle_name": "Smith",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"ssn": "123456789",
+"phone_number": "+19176159179",
+"email_address": "john.doe@alviere.com"
+},
+"contacts": [
+{}
+],
+"addresses": [
+{}
+],
+"dossiers": [
+{}
+]
+}
+Update Account
+Updates an existing user account in the system.
+
+How this service works:
+
+Only the properties that are present on the request body will be updated.
+Properties not present on the request body will remain unchanged in the system.
+To update a property to an empty string or null you need to put the correct value on the request.
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+personal_information	
+object
+This structure contains the personal information of a user account.
+
+Responses
+200 The user account was successfully updated.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict due to User in status PROCESSING
+
+patch
+/v1/accounts/{account_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"personal_information": {
+"first_name": "John",
+"middle_name": "Smith",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"ssn": "123456789",
+"phone_number": "+19176159179",
+"email_address": "john.doe@alviere.com"
+}
+}
+Response samples
+200400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"type": "CONSUMER",
+"status": "CREATED",
+"stage": "FRAUD",
+"status_reason": "INVALID_DOB",
+"external_id": "string",
+"personal_information": {
+"first_name": "John",
+"middle_name": "Smith",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"ssn": "123456789",
+"phone_number": "+19176159179",
+"email_address": "john.doe@alviere.com"
+},
+"contacts": [
+{}
+],
+"addresses": [
+{}
+],
+"dossiers": [
+{}
+]
+}
+Delete Account
+Removes a user account from the system.
+
+Note: For historical purposes, a user account is never deleted, but rather its status is set to DELETED
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 User account successfully deleted.
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/accounts/{account_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50002",
+"error_description": "Invalid JWT access token"
+}
+Activate Account
+Activates a user account.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 User account activated successfully
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict. User account already ACTIVE
+
+put
+/v1/accounts/{account_uuid}/activate
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request PUT \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/activate \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404409
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Inactivate Account
+Inactivates a user account
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 User account inactivated successfully
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict. User account already INACTIVE
+
+put
+/v1/accounts/{account_uuid}/inactivate
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request PUT \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/inactivate \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404409
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Add Address
+Add an address to the account.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+label
+required
+string (The description of the address)
+address
+required
+object
+Responses
+201 The account address was successfully added
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field label
+
+post
+/v1/accounts/{account_uuid}/addresses
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"label": "Home Address",
+"address": {
+"primary": true,
+"line_1": "101 Avenue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"address": {
+"address_uuid": "b024fcf3-b7af-4352-b405-f9bc29df7f7e",
+"primary": true,
+"label": "Home Address",
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Get Addresses
+Gets the list of addresses from the account.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The addresses were returned for the account
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/{account_uuid}/addresses
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/addresses \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"addresses": [
+{}
+]
+}
+Update Address
+Updates an existing address in the account
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+address_uuid
+required
+string <uuid> (Address UUID)
+The uuid of the address
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+label	
+string (The label for the address)
+address	
+object
+Responses
+200 The address was updated
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+patch
+/v1/accounts/{account_uuid}/addresses/{address_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"label": "Home Address",
+"address": {
+"line_1": "101 Avenue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"address": {
+"address_uuid": "b024fcf3-b7af-4352-b405-f9bc29df7f7e",
+"primary": true,
+"label": "Home Address",
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Delete Address
+Deletes an address from the account.
+
+Note: A primary address of an account cannot be deleted. If the primary address has changed the original record needs to be updated.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 Document deleted
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/accounts/{account_uuid}/addresses/{address_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/addresses/%7Baddress_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50002",
+"error_description": "Invalid JWT access token"
+}
+Add Contact
+Adds a contact to the account.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+contact
+required
+object
+Responses
+201 The account contact was successfully added
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/accounts/{account_uuid}/contacts
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"contact": {
+"type": "EMAIL",
+"value": "john.doe@alviere.com"
+}
+}
+Response samples
+201400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"contact": {
+"contact_uuid": "ef88867c-78a0-4c23-93c5-269f718bc3e8",
+"type": "EMAIL",
+"value": "john.doe@alviere.com"
+}
+}
+Get Contacts
+Gets the list of contacts from the account.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Responses
+200 The contacts were returned for the account
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/{account_uuid}/contacts
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/contacts \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"contacts": [
+{}
+]
+}
+Update Contact
+Updates an existing address in the account
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+contact_uuid
+required
+string <uuid> (Contact UUID)
+The uuid of the contact
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+contact	
+object
+Responses
+200 The contact was updated
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+patch
+/v1/accounts/{account_uuid}/contacts/{contact_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"contact": {
+"type": "EMAIL",
+"value": "john.doe@alviere.com"
+}
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"contact": {
+"contact_uuid": "ef88867c-78a0-4c23-93c5-269f718bc3e8",
+"type": "EMAIL",
+"value": "john.doe@alviere.com"
+}
+}
+Delete Contact
+Deletes a contact from the account
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Responses
+204 Contact deleted
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/accounts/{account_uuid}/contacts/{contact_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/contacts/%7Bcontact_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50002",
+"error_description": "Invalid JWT access token"
+}
+Add Dossier
+Upload Dossier documents to the user account.
+
+Uploading primary documents is required when the status of the user account is CREATED or PENDING_USER and the stage is DOCUMENT
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+external_id
+required
+string (Your unique identification of the dossier in your system)
+This is your unique ID for this dossier. This field is used to guarantee idempotency.
+
+primary	
+boolean
+Default: false
+Whether the dossier is primary or not. There can only be one primary dossier.
+
+documents
+required
+Array of objects
+The list of primary documents to be added to the profile.
+
+Responses
+201 The user account dossier was successfully created in the system and the KYC and Identity Management processes might have been kicked off.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/accounts/{account_uuid}/dossiers
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"external_id": "string",
+"primary": false,
+"documents": [
+{}
+]
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"dossier": {
+"dossier_uuid": "f24b2b34-febf-4f2f-96cb-d34701da0ddd",
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"primary": true,
+"status": "CREATED",
+"status_reason": "string",
+"external_id": "string",
+"created_at": "2019-08-24",
+"updated_at": "2019-08-24",
+"documents": []
+}
+}
+Get Dossiers
+Gets the user account dossiers.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The dossiers were returned for the user
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/{account_uuid}/dossiers
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/dossiers \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"dossiers": [
+{}
+]
+}
+Get Dossier
+Gets the dossier from the user account.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+dossier_uuid
+required
+string <uuid> (Dossier UUID)
+The uuid of the dossier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The dossier was returned for the user
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/{account_uuid}/dossiers/{dossier_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/dossiers/%7Bdossier_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"dossier": {
+"dossier_uuid": "f24b2b34-febf-4f2f-96cb-d34701da0ddd",
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"status": "CREATED",
+"status_reason": "string",
+"external_id": "string",
+"created_at": "2019-08-24",
+"updated_at": "2019-08-24",
+"documents": []
+}
+}
+Update Dossier
+Updates an existing dossier in the system
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+dossier_uuid
+required
+string <uuid> (Dossier UUID)
+The uuid of the dossier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+documents
+required
+Array of objects
+Responses
+200 The dossier was updated
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+patch
+/v1/accounts/{account_uuid}/dossiers/{dossier_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"documents": [
+{}
+]
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"dossier": {
+"dossier_uuid": "f24b2b34-febf-4f2f-96cb-d34701da0ddd",
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"primary": true,
+"status": "CREATED",
+"status_reason": "string",
+"external_id": "string",
+"created_at": "2019-08-24",
+"updated_at": "2019-08-24",
+"documents": []
+}
+}
+Replace Dossier
+Replaces an existing dossier in the system
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+dossier_uuid
+required
+string <uuid> (Dossier UUID)
+The uuid of the dossier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+documents
+required
+Array of objects
+Responses
+201 The dossier was replaced
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+put
+/v1/accounts/{account_uuid}/dossiers/{dossier_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"documents": [
+{}
+]
+}
+Response samples
+201400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"dossier": {
+"dossier_uuid": "f24b2b34-febf-4f2f-96cb-d34701da0ddd",
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"primary": true,
+"status": "CREATED",
+"status_reason": "string",
+"external_id": "string",
+"created_at": "2019-08-24",
+"updated_at": "2019-08-24",
+"documents": []
+}
+}
+Delete Dossier
+Deletes a dossier from the system
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+dossier_uuid
+required
+string <uuid> (Dossier UUID)
+The uuid of the dossier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 Dossier deleted
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/accounts/{account_uuid}/dossiers/{dossier_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/dossiers/%7Bdossier_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Get Payment Methods
+Gets all the user's payment methods
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account holding the payment methods
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Successfully fetched payment methods for the user account.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/payments/{account_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/payments/%7Baccount_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"cards": [
+{}
+],
+"bank_accounts": [
+{}
+]
+}
+Account Wallet
+This section details the ledger which contains the funding information for the account.
+
+Ledger and Balances
+There are three types of funding buckets managed by the Alviere ledger:
+
+Bucket	Description
+BALANCE	These are the settled funds in the user account.
+IN_TRANSIT	The unsettled funds in the user account. This amount generally includes funds that have been authorized by a user transaction, but have not yet settled from the corresponding processor.
+CAPTIVE	The funds that have been held captive for a transaction that was performed on the account. For example, if an ACH Debit was performed, the funds will be held captive until the transaction executes.
+The account wallet APIs allow you to perform operations on the account ledger or move funds within the system to other account wallets.
+
+Account Wallet Transactions
+Transactions on the account wallet follow a specific flow depending on the transaction type being executed.
+
+The available account statuses are as follows:
+
+Status	Description
+ACTIVE	The transaction has been created in the system.
+PROCESSING	The transaction is currently processing; this usually happens when a ledger transaction requires a payment to be pulled or pushed from a payment method.
+PENDING	The transaction is pending acceptance from the receiver of the transaction.
+CANCELLED_USER	The transaction has been cancelled at the user's request.
+CANCELLED_SYSTEM	The transaction has been cancelled by an automated system process; the reason for the cancellation will be present on the response of the API call.
+ERROR	The transaction has failed due to a system error.
+FAILED	The transaction failed due to an unsuccessful underlying payment transaction, such as an NSF response from the processor. The reason for the failure will be present on the response of the API call.
+EXPIRED	The transaction has expired in the system because the processing of the transaction did not complete within the predefined time for execution.
+COMPLETED	The transaction has been completed and the funds were successfully transferred.
+REJECTED	The transaction was rejected by a manual review process.
+PENDING_KYC	The transaction is currently pending and awaiting the receiver/recipient to complete their KYC information.
+PROCESSING_PAYMENT	The transaction is currently processing a payment operation with the underlying processor.
+WAITING	The transaction is currently waiting for funds to be available in order to be executed; this status occurs only on Withdraw transactions when the corresponding reserve account has insufficient funds. The transaction will automatically post when the funds on the reserve account are replenished.
+MANUAL_REVIEW	The transaction has been placed in manual review and awaits an operator decision to be posted.
+VOIDED	The transaction has been voided due to voiding of the underlying payment transaction directly with the processor.
+Note: Different workflows and statuses may apply to different transaction types.
+
+Holding Funds
+In order for any user account to hold funds in Alviere, they need to perform the full KYC and Identity Management processes. For further details, see the Accounts section of the documentation.
+
+Service Fees
+Alviere supports the application of Service Fees on any user account wallet transaction. To apply your own service fees to a transaction, you should set the desired amount or percentage of the total value of the transaction in the corresponding structure.
+
+Service Fees will be automatically be moved to your service fees account; this is a native feature of Alviere's Treasury Management module. A transaction of type SERVICE_FEE will be automatically created as a child transaction of the original user account wallet transaction. Service Fees are only collected once the transaction moves to COMPLETED status. If the transaction is not completed (eg. REFUND), the service fee transaction will also be void and the funds will not move to your service fees account.
+
+Service Fees in Alviere always apply to transactions and can be charged in the following types:
+
+Service Fee Type	Description
+PERCENT	Use this service fee type if you want a service fee percentage to be applied on the total amount of the transaction. For example, if the total amount is $100 and you want to apply a 10% fee, you should set the property to value: 10
+AMOUNT	Use this service fee type if you want a fixed amount service fee to be applied to the transaction, in cents (eg. value: 1000).
+PERCENT_CAPPED	Use this service fee type if you want a service fee percentage to be applied on the total amount of the transaction, up to a certain amount. For example, if the total amount is $1000 and you want to apply a 10% fee capped to $50, you should set the value: 10 and cap: 5000
+In terms of how the transaction amount applies to the transaction:
+
+Charge Type	Description
+UPCHARGE	The service fee will be applied as an upcharge to the transaction. For example, if a customer is performing a cross-border transaction of $100 and there's a PERCENT service fee of 10%, the user account would be charged $110.
+DEDUCT	The service fee will be applied as a deduction to the transaction amount. For example, if a customer is performing a withdraw transaction of $100 and there's a PERCENT service fee of 10%, the user would only receive $90 on their account.
+Captivating/Uncaptivating Funds
+Alviere supports the custom captivation of funds in the user account's wallet. Captivation needs to have a corresponding ledger entry associated with it, generally a LOAD funds transaction type.
+
+The following business rules apply to funds captivation:
+
+Funds can only be captivated in the user account wallet if the sum balance + in_transit funds is equal to or greater than the funds being captivated.
+When captivating funds, Alviere's ledger will always use balance funds first, and if the full amount is not available, the remainder will be taken from the in_transit funds.
+The following business rules apply to the uncaptivation of funds:
+
+Funds can only be uncaptivated when the amount is less than or equal to the captive amount and the original transaction that captivated the funds has not completed.
+Funds that are uncaptivated return to the corresponding buckets:
+To the balance bucket for settled funds;
+To the in_transit bucket for unsettled funds.
+Note that the captivated funds also abide by the settlement rules of the underlying payment processor. For example, if funds are captivated from the in_transit bucket and settle in the meantime, they return to the user account wallet as balance when the funds are uncaptivated.
+
+Get Balance
+Gets the balance for a user
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The balance details for the user
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/ledger/{account_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/ledger/%7Baccount_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+{
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+}
+Get Transaction
+Get the specific transaction for this user account wallet
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account
+
+transaction_uuid
+required
+string <uuid>
+The uuid of the transaction
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The transaction from the user account wallet
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/ledger/{account_uuid}/transactions/{transaction_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/ledger/%7Baccount_uuid%7D/transactions/%7Btransaction_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"parent_transaction_uuid": "5acfa667-0956-4e69-b9a5-95e206e6ba32",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"external_id": "string",
+"amount": 1,
+"refunded": false,
+"currency": "USD",
+"exchange_rate": 1.14,
+"description": "Card activation service fee",
+"fraud_risk_score": 100,
+"issued_card": {
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"merchant_name": "Merchant",
+"merchant_id": "1234"
+},
+"payment_method": {
+"payment_method_uuid": "09f46e1f-aa02-46ec-ae6d-34946f385e3d"
+},
+"dda": {
+"origin_bank": "string",
+"payroll": true
+},
+"created_at": "2019-08-24",
+"updated_at": "2019-08-24"
+}
+Get Transactions
+Gets the transactions for this user account wallet
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account
+
+query Parameters
+limit	
+integer [ 1 .. 100 ]
+Default: 10
+The number of items per page.
+
+offset	
+integer >= 0
+start after offset amount of records
+
+type	
+string
+Enum: "CARD_CREDIT" "CARD_REFUND" "CARD_DEBIT" "EXTERNAL_CREDIT" "WITHDRAW_FUNDS" "LOAD_FUNDS" "CARD_ISSUED_DEBIT" "CARD_ISSUED_CREDIT" "CARD_ISSUED_INITIAL" "CARD_ISSUED_RESET" "CARD_ISSUED_ATM_DEBIT" "INTERNAL_TRANSFER_CREDIT" "INTERNAL_TRANSFER_DEBIT" "BANK_CREDIT" "ADJUSTMENT" "ADJUSTMENT_ROLLBACK" "AUTO_LOAD_FUNDS" "AUTO_WITHDRAW_FUNDS" "CHARGEBACK" "CHARGEBACK_LOSS" "CHARGEBACK_REVERSAL" "CUSTOMER_CREDIT" "RECEIVE_CUSTOMER_CREDIT" "REFUND" "RETURN" "RETURN_LOSS" "RETURN_REVERSAL" "ROLLBACK" "ROLLBACK_RECEIVE" "SERVICE_FEE" "SERVICE_FEE_REVERSAL" "NEGATIVE_LOSS" "INTERNAL_PARTIAL" "TRANSFER" "INTERNATIONAL_TRANSFER"
+string needs to be a valid transaction type, or multiple valid types separated by a ,
+
+status	
+string
+Enum: "CREATED" "PROCESSING" "IN_TRANSIT" "FAILED" "ERROR" "CANCELED" "VOIDED" "SETTLED" "COMPLETED" "PENDING" "MANUAL_REVIEW" "PROMOTED"
+string needs to be a valid transaction status, or multiple valid statuses separated by a ,
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The transactions for the user account wallet
+400 Bad Request
+401 Unauthorized
+
+get
+/v1/ledger/{account_uuid}/transactions
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url 'https://api.snd.alviere.com/v1/ledger/%7Baccount_uuid%7D/transactions?limit=SOME_INTEGER_VALUE&offset=SOME_INTEGER_VALUE&type=SOME_STRING_VALUE&status=SOME_STRING_VALUE' \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"records": 0,
+"transactions": [
+{}
+]
+}
+Load Funds
+Loads funds into a customer wallets.
+
+Alviere supports loading of funds into user account wallets using the Load Funds service.
+
+In order to load funds into the account wallet, the user account needs to have a valid payment method, tokenized in the system through the Add Card or Add Bank Account services. Note that loading funds from a Bank Account requires that a Plaid token is present and valid in the system.
+
+Once funds are loaded in the user account, the account wallet will have the corresponding amount in the in_transit bucket. This means that the loading of funds transaction has been accepted, but the funds are not settled yet. Funds will be settled according to the selected payment method settlement times.
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account to load
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+token
+required
+string <uuid>
+The token corresponding to the payment method being used.
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+service_fees	
+Array of objects (service fees)
+Service fees associated with the load funds transaction.
+
+external_id
+required
+string (The unique order ID in the external system) [ 8 .. 64 ]
+This value is used for idempotency purposes.
+
+NOTE: This field MUST be unique. Any subsequent transactions with the same value will be discarded.
+
+Responses
+201 The load transaction was successfully created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/ledger/{account_uuid}/load
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"service_fees": [
+{}
+],
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Withdraw Funds
+Alviere supports withdrawing funds from the user account's wallet to an external funding destination using the Withdraw Funds service.
+
+In order to withdraw funds from the account wallet, the user account needs to have a valid payment method, tokenized in the system through the Add Card or Add Bank Account services. Note that withdrawing funds to a Card requires that the push-to-card service is active and the card supports this feature over the debit card rails of the network schemes.
+
+Once funds are withdrawn from the user account, the account wallet will have the corresponding amount in the captive bucket. This means that the withdrawing of funds transaction has been accepted, but the funds are not available in the destination source yet. Funds will be settled according to the selected payment method settlement times.
+
+Important Note: Although withdrawing of funds returns structure of the underlying payment transaction, account wallet operations can only be cancelled using the unique transaction_uuid returned by the Withdraw Funds service.
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account to withdraw funds from
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+token
+required
+string <uuid>
+The token corresponding to the payment method being used.
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+service_fees	
+Array of objects (service fees)
+Service fees associated with the withdraw funds transaction.
+
+external_id
+required
+string (The unique order ID in the external system) [ 8 .. 64 ]
+This value is used for idempotency purposes.
+
+NOTE: This field MUST be unique. Any subsequent transactions with the same value will be discarded.
+
+Responses
+201 The withdraw transaction was successfully created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/ledger/{account_uuid}/withdraw
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"service_fees": [
+{}
+],
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Send Funds
+Alviere provides the ability to send funds to another user account. This feature is only available for customers subscribed to a P2P program. Funds can only be sent to user accounts that are in ACTIVE status.
+
+The funds will be sent using the following business logic:
+
+If the user has enough balance to send the funds, the funds from this bucket will be used first.
+If the user doesn't have enough balance to send the funds, and the sum of balance + in_transit funds in the user account wallet are enough to perform the transaction, Alviere will use the full balance funds and the remaining funds will be used from the in_transit bucket.
+If the user does not have the full amount of funds to send in either or both buckets, Alviere will use the provided payment method to perform a transaction of the full amount of the funds.
+If the user does not have enough funds to perform the transaction in either or both bucket, and no payment method is provided, the transaction will fail.
+Note that for the sending of funds using a payment method, the transaction could fail due to any payment processing error, such as NSFs or transactions not authorized.
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account sending the funds
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+token	
+string <uuid>
+The token corresponding to the payment method to be used in case there are no funds in the user account wallet to complete the transaction
+
+destination_uuid
+required
+string <uuid>
+The uuid of the user account to send the funds to
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency	
+string
+The currency code in ISO-4217 format.
+
+service_fee	
+object
+The structure containing service fees to be applied to a transaction.
+
+external_id
+required
+string (The unique order ID in the external system) [ 8 .. 64 ]
+This value is used for idempotency purposes.
+
+NOTE: This field MUST be unique. Any subsequent transactions with the same value will be discarded.
+
+Responses
+201 The send transaction was successfully created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/ledger/{account_uuid}/send
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"destination_uuid": "ae912566-538e-414e-a105-207d488ce798",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"service_fee": {
+"type": "AMOUNT",
+"description": "string",
+"calc_type": "UPCHARGE",
+"cap": 1,
+"value": {}
+},
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Add Promo Credit
+Alviere provides the ability to credit a user account with promotional funds. Funds can only be sent to user accounts that are in ACTIVE status.
+
+The funds will be sent from your business Special Promotinal Funds Account PROMO_FUNDS
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+destination_uuid
+required
+string <uuid>
+The uuid of the user account to add promotional credit
+
+transaction_amount	
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+external_id
+required
+string (The unique order ID in your internal system system) [ 8 .. 64 ]
+This value is also used for idempotency purposes.
+
+NOTE: This field MUST be unique. Any subsequent transactions with the same value will be discarded.
+
+Responses
+201 The promo credit transaction was successfully created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/ledger/promo
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"destination_uuid": "ae912566-538e-414e-a105-207d488ce798",
+"transaction_amount": 1,
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Create Debit Transaction
+Debits a specified transaction amount from the provided consumer account.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+destination_uuid
+required
+string <uuid>
+The uuid of the user account to debit
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+description	
+string
+external_id
+required
+string (The unique order ID in your internal system)
+This value is also used for idempotency purposes.
+
+NOTE: This field MUST be unique. Any subsequent transactions with the same value will be discarded.
+
+Responses
+201 The debit transaction was successfully created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/ledger/transfer/debit
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"destination_uuid": "ae912566-538e-414e-a105-207d488ce798",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"description": "string",
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Create Credit Transaction
+Credits a specified transaction amount to the provided consumer account.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+destination_uuid
+required
+string <uuid>
+The uuid of the user account to credit
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+description	
+string
+external_id
+required
+string (The unique order ID in your internal system)
+This value is also used for idempotency purposes.
+
+NOTE: This field MUST be unique. Any subsequent transactions with the same value will be discarded.
+
+Responses
+201 The credit transaction was successfully created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/ledger/transfer/credit
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"destination_uuid": "ae912566-538e-414e-a105-207d488ce798",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"description": "string",
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Get Demand Deposit Account
+Gets the consumer Demand Deposit Account
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account holding the Demand Deposit Account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The Demand Deposit Account
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/accounts/{account_uuid}/dda
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/accounts/%7Baccount_uuid%7D/dda \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+{
+"account_number": "string",
+"routing_number": "string"
+}
+Get Receipt
+Get the specific receipt for a transaction
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account
+
+transaction_uuid
+required
+string <uuid>
+The uuid of the transaction
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The receipt from a specific transaction
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/ledger/{account_uuid}/transactions/{transaction_uuid}/receipt
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/ledger/%7Baccount_uuid%7D/transactions/%7Btransaction_uuid%7D/receipt \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"receipt_uuid": "a3c837ac-a671-48dc-b1e5-319e687dec9f",
+"receipt_date": "2021-09-21T23:00:13.89358407Z",
+"receipt_number": "US-000000012",
+"transaction": {
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"description": "string",
+"exchange_rate": "1.14",
+"transaction_date": "2019-08-24",
+"payment_method": {},
+"service_fees": [],
+"amount": 1,
+"currency": "USD",
+"origin": {},
+"destination": {}
+}
+}
+Tokenization
+This section outlines the endpoints related to our tokenization service.
+
+Card Tokenization Process
+When a card is added to our system through our tokenization service, we perform multiple tests before encrypting and storing the card details with the highest PCI standards.
+
+The following flow needs to be respected at all times:
+
+Add a card to the system using the create token API. All card information needs to be submitted to add a card.
+Check the CVV results section. Invalid CVVs will result in unusable cards.
+Make sure the AVS results are acceptable for your business scenario, and if not, notify your user that the card could not be added.
+When successful, all information gathered and generated to validate the card is returned together with the newly created token.
+Make sure you store this token securely. This is the only way to reference this card in the future and to perform all card-related operations.
+Cards could have the following statuses:
+
+Status	Description
+CREATED	The Card was created in the system and is currently being validated.
+ACTIVE	The Card is active and can be used for transactions.
+REJECTED	The Card has been rejected.
+FAILED	This is the status when a Card is failed in the system.
+EXPIRED	This is the status when a Card is expired in the system.
+DELETED	This is the status when a Card is deleted in the system.
+Card Validations
+In order to complete the validation, the following checks are performed for all cards:
+
+BIN Check: We retrieve card details such as issuing country, card brand (Visa, Mastercard, Discover, etc...) and card type (credit, debit, prepaid, etc...). Although this information is retrieved based on a reliable BIN database, this information is subject to constant changes by the network, regulators and other parties, so if you have any limitations as per the types of cards your service should accept, make sure you validate this information regularly.
+AVS Check: This Address Verification System (AVS) check is used to verify the card data, such as billing address and ZIP code, against the supported card network’s billing information of the cardholder. This validation may have various results, depending on the provided information. Please see the AVS Match Responses documentation below for more details.
+CVV Check: This check verifies that the security code (CVV) submitted by the customer matches the security code associated with the card. See documentation below for the CVV Check Response Codes.
+$0 Authorization: This standard network card verification process ensures that the card is fully operational. It does not show up in the account holder’s statement and does not need any void or refund operation. If you are using Alviere’s tokenization services, this transaction is done automatically when you add a card to the system, and will perform CVV and AVS checks for you.
+Card Failures
+If a card fails any of the validation checks above, the response will remain “201 CREATED” and the response payload will contain the information regarding the results and the main reason for the failure. You may access this information at any time. Please note that the cards remain encrypted and stored in our system as per compliance regulations.
+
+If a card validation check fails, and you wish to retry (eg. the customer has missed the CVV), you can issue a new create card request with the correct parameters, and a new tokenization of this card will be returned to you with an updated validation status.
+
+AVS Match Response codes
+Code	Visa	MasterCard	Discover
+Y	Address & 5-digit or 9-digit ZIP match	Address & 5-digit ZIP match	Address only matches
+A	Address matches, ZIP does not	Address matches, ZIP does not	Address & 5-digit ZIP match
+S	AVS not supported	AVS not supported	AVS not supported
+R	System unavailable, retry	System unavailable, retry	Not applicable
+U	Information not available	Information not available	System unavailable, retry
+Z	Either 5-digit or 9-digit ZIP match, address does not	5-digit ZIP matches, address does not	5-digit ZIP matches, address does not
+N	Neither ZIP nor address match	Neither ZIP nor address match	Neither ZIP nor address match
+W	Not applicable	For U.S., 9-digit ZIP matches, address does not.	For non-U.S., ZIP matches, address does not
+X	Not applicable	For U.S., all digits match.	For non-U.S., ZIP and address match.
+B	Address matches, ZIP not verified	Not applicable	Not applicable
+T	Not applicable	Not applicable	9-digit ZIP matches, address does not
+P	ZIP matches, address not verified	Not applicable	Not applicable
+C	Address and ZIP not verified	Not applicable	Not applicable
+D	Address & ZIP match (International only)	Not applicable	Not applicable
+G	Address not verified for International transaction (International only)	Not applicable	Not applicable
+I	Address not verified (International only)	Not applicable	Not applicable
+M	Address & ZIP match (International only)	Not applicable	Not applicable
+F	Address & ZIP match (UK only)	Not applicable	Not applicable
+CVV Match Response codes
+When tokenizing a card the response will contain the status code of the CVV validation.
+
+The following codes are returned:
+
+Code	Description
+M	Match
+N	No Match
+P	Not Processed
+S	Not Supported
+U	Service Not Available
+X	No CVC/CVV/CVV2/CID Response Data Available
+(empty)	No CVC/CVV/CVV2/CID Response Data Available
+Bank Account Tokenization
+In order to process ACH transactions in the Alviere platform, you need to, first, create an account, and then refer to the account through its unique token, moving forward.
+Note: ACH Credit transactions are only supported when tokenized with Alviere's partner Plaid; for this purpose, a Bank Account needs to be added through the bank tokenization process.
+
+Bank Accounts could have the following statuses:
+
+Status	Description
+CREATED	The Bank Account was created in the system and is currently being validated. This status occurs only when a Plaid Token has been provided.
+ACTIVE	The Bank Account is active and can be used for transactions.
+REJECTED	The Bank Account has been rejected. This usually happens because an account did not pass the identity match process through Plaid.
+FAILED	This is the status when a Bank Account is failed in the system.
+DELETED	This is the status when a Bank Account is deleted in the system.
+Add Card
+Creates a card token.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+account_uuid	
+string <uuid> (Card owner account id)
+The system will use this account as the owner of the card being created in the system. This field is optional, and if not present, we will use the account id extracted from the authorization token of the current request.
+
+Note that the account must be valid and belong to you.
+
+external_id
+required
+string (Card payment method identification) [ 1 .. 128 ]
+This is a value that identifies the card in your own system. This field MUST be unique per account and it is used to validate against duplicate records (e.g. if you send two cards with same external_id the system will return an HTTP status code 409 - conflict)
+
+card
+required
+object
+Responses
+201 The request was successful and the Card Token was created. We will always create the card entity in our system. Please check the payload to determine the result status as the card might have failed our internal checks and returned a code 201 with the FAILED status.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+409 Conflict on the field external_id
+
+post
+/v1/tokens/card
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"account_uuid": "ce2b0de7-5c0c-47b1-ba81-af261ad181f5",
+"external_id": "string",
+"card": {
+"pan": "4111111111111111",
+"exp_year": "24",
+"exp_month": "01",
+"postal_code": "10013",
+"name_on_card": "John Doe",
+"security_code": "123"
+}
+}
+Response samples
+201400401403409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "ACCEPTED",
+"card": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"brand": "VISA",
+"type": "CREDIT",
+"country": "USA",
+"last_4": "0000",
+"status": "CREATED",
+"flags": {}
+},
+"validation": {
+"error_code": "",
+"error_description": "",
+"cvv_result": "M",
+"avs_result": "A"
+}
+}
+Get Cards
+Show tokens card list.
+
+query Parameters
+limit	
+integer [ 1 .. 100 ]
+The number of items per page.
+
+offset	
+integer >= 0
+start after offset amount of records
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 OK
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+
+get
+/v1/tokens/card
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url 'https://api.snd.alviere.com/v1/tokens/card?limit=SOME_INTEGER_VALUE&offset=SOME_INTEGER_VALUE' \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"records": 0,
+"cards": [
+{}
+]
+}
+Verify Card Flags
+Activates flags on the card for specific transaction types
+
+path Parameters
+token
+required
+string <uuid> (card token identifier)
+The card token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+flag
+required
+string
+Value: "push_to_card"
+Which flag to verify
+
+Responses
+200 OK
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/tokens/card/{token}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"flag": "push_to_card"
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "ACCEPTED",
+"validation": {
+"error_code": "500012",
+"error_description": "Operation not supported"
+},
+"card": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"brand": "VISA",
+"type": "CREDIT",
+"country": "USA",
+"last_4": "0000",
+"status": "CREATED",
+"flags": {}
+}
+}
+Get Card
+Retrieves card token details.
+
+path Parameters
+token
+required
+string <uuid> (card token identifier)
+The card token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 OK
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/tokens/card/{token}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/tokens/card/%7Btoken%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"card": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"brand": "VISA",
+"type": "CREDIT",
+"country": "USA",
+"last_4": "0000",
+"status": "CREATED",
+"flags": {}
+}
+}
+Delete Card
+Deletes a card token from the system.
+
+Notes
+Cards in FAILED status can't be deleted.
+
+path Parameters
+token
+required
+string <uuid> (card token identifier)
+The card token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 Card deleted successfully
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/tokens/card/{token}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/tokens/card/%7Btoken%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50002",
+"error_description": "Invalid JWT access token"
+}
+Add Bank Account
+Creates a bank account on the Alviere system.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+account_uuid
+required
+string <uuid>
+The unique id of the bank owner user account within the Alviere platform.
+
+external_id
+required
+string (Bank identification) [ 1 .. 128 ]
+This is a value that identifies the bank in your own system. This field MUST be unique per account and it is used to validate against duplicate records (e.g. if you send two cards with same external_id the system will return an HTTP status code 409 - conflict)
+
+country
+required
+string (Country) ^[A-Z]{3}$
+Three-letter country code (ISO 3166-1 alpha-3).
+
+currency
+required
+string
+The bank's currency code in ISO-4217 format.
+
+bank_account_details
+required
+object
+The bank account details need to be one of the structures, either ach or eft or iban or swift or clabe.
+
+Note: Use only one of below. Which structure to use ties with the type of bank account above.
+
+Responses
+201 Bank account was successfully added to the system
+400 Bad Request
+401 Unauthorized
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/tokens/bank
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"external_id": "string",
+"country": "USA",
+"currency": "string",
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+}
+}
+Response samples
+201400401404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_account": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"status": "CREATED",
+"type": "CHECKING",
+"last_4": "string",
+"country": "USA",
+"currency": "string",
+"is_plaid": true,
+"flags": {},
+"bank_account_details": {},
+"fail_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Get Bank Accounts
+Gets the list of bank accounts in the system.
+
+query Parameters
+limit	
+integer [ 1 .. 100 ]
+The number of items per page.
+
+offset	
+integer >= 0
+start after offset amount of records
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Bank accounts successfully retrieved
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/tokens/bank
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url 'https://api.snd.alviere.com/v1/tokens/bank?limit=SOME_INTEGER_VALUE&offset=SOME_INTEGER_VALUE' \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_accounts": [
+{}
+]
+}
+Get Bank Account
+Gets the bank account details from the system.
+
+path Parameters
+token
+required
+string <uuid>
+The bank token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Bank account was succesfully retrieved
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/tokens/bank/{token}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/tokens/bank/%7Btoken%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_account": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"status": "CREATED",
+"type": "CHECKING",
+"last_4": "string",
+"country": "USA",
+"currency": "string",
+"is_plaid": true,
+"flags": {},
+"bank_account_details": {},
+"fail_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Update Bank Account
+Updates a bank account in the Alviere system. This method will only update the properties present in the payload.
+
+path Parameters
+token
+required
+string <uuid>
+The bank token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+bank_account_details	
+object
+The bank account details need to be one of the structures, either ach or eft or iban or swift or clabe.
+
+Note: Use only one of below. Which structure to use ties with the type of bank account above.
+
+Responses
+200 Bank account was successfully updated on the system
+400 Bad Request
+401 Unauthorized
+404 Not Found
+
+patch
+/v1/tokens/bank/{token}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+}
+}
+Response samples
+200400401404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_account": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"status": "CREATED",
+"type": "CHECKING",
+"last_4": "string",
+"country": "USA",
+"currency": "string",
+"is_plaid": true,
+"flags": {},
+"bank_account_details": {},
+"fail_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Delete a Bank Account
+Deletes a bank account from the system.
+
+Notes
+Banks in CREATED, FAILED or REJECTED statuses can't be deleted.
+
+path Parameters
+token
+required
+string <uuid>
+The bank token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 The Bank Account was successfully deleted.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/tokens/bank/{token}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/tokens/bank/%7Btoken%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Add Plaid Bank Account
+Creates a Plaid bank account on the Alviere system.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+account_uuid
+required
+string <uuid>
+The unique id of the bank owner user account within the Alviere platform.
+
+external_id
+required
+string (Plaid bank identification) [ 1 .. 128 ]
+This is a value that identifies the bank in your own system. This field MUST be unique per account and it is used to validate against duplicate records (e.g. if you send two cards with same external_id the system will return an HTTP status code 409 - conflict)
+
+country
+required
+string (Country) ^[A-Z]{3}$
+Three-letter country code (ISO 3166-1 alpha-3).
+
+currency
+required
+string
+The bank's currency code in ISO-4217 format.
+
+plaid_public_token
+required
+string (Plaid public token)
+Plaid public token
+
+plaid_account_id
+required
+string (Plaid account id)
+Plaid account id
+
+Responses
+201 Plaid bank account was successfully added to the system
+400 Bad Request
+401 Unauthorized
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/tokens/plaid/bank
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"account_uuid": "847548f7-9cde-4fe5-8751-32ff19825b7e",
+"external_id": "string",
+"country": "USA",
+"currency": "string",
+"plaid_public_token": "string",
+"plaid_account_id": "string"
+}
+Response samples
+201400401404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_account": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"status": "CREATED",
+"type": "CHECKING",
+"last_4": "string",
+"country": "USA",
+"currency": "string",
+"is_plaid": true,
+"flags": {},
+"bank_account_details": {},
+"fail_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Update Plaid Bank Account
+Updates a bank account in the Alviere system. This method will only update the properties present in the payload.
+
+path Parameters
+token
+required
+string <uuid>
+The bank token identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+plaid_public_token
+required
+string (Plaid public token)
+Plaid public token
+
+plaid_account_id	
+string (Plaid account id)
+Plaid account id
+
+Responses
+200 Bank account was successfully added to the system
+400 Bad Request
+401 Unauthorized
+404 Not Found
+
+patch
+/v1/tokens/plaid/bank/{token}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"plaid_public_token": "string",
+"plaid_account_id": "string"
+}
+Response samples
+200400401404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"bank_account": {
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"external_id": "string",
+"status": "CREATED",
+"type": "CHECKING",
+"last_4": "string",
+"country": "USA",
+"currency": "string",
+"is_plaid": true,
+"flags": {},
+"bank_account_details": {},
+"fail_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Card Processing
+This section describes how to execute payment processing transactions, such as authorizations and cancellations of existing transactions.
+
+Authorize Debit
+Creates a card debit payment transaction. When successful, an Authorization and a Capture will simultaneously be performed.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+card_token
+required
+string <uuid> (Payment card token identifier)
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+auth_type
+required
+string
+Value: "AUTHCAP"
+Currently, Alviere supports AUTHCAP authorization type only.
+
+AUTHCAP: This type of operation will attempt to authorize and capture the provided amount in a single request and, if successful, the funds are captured from the cardholder’s account, and the payment is considered successful.
+
+external_id
+required
+string (Merchant payment order ID) [ 8 .. 64 ]
+This field is the Merchant's payment order ID that will be associated with this transaction and can be used to cross reference transactions as well as protect API against duplicate orders.
+
+NOTE: This field MUST be unique. Any subsequent transactions with same external_id will fail.
+
+billing_details	
+object
+Responses
+201 The transaction was created successfully. We will always create the transaction in our system. Please check result for the transaction operation result as this endpoint will always return a code 201. If DENIED, more details can be found in the validation field.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/payments/card/debit
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"card_token": "0a748f37-9423-492c-a713-f006d3ab14bf",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"auth_type": "AUTHCAP",
+"external_id": "string",
+"billing_details": {
+"first_name": "string",
+"last_name": "string",
+"email_address": "user@example.com",
+"phone_number": "+19176159179",
+"address": {}
+}
+}
+Response samples
+201400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "ACCEPTED",
+"payment_type": "AUTHCAP",
+"transaction": {
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"parent_transaction_uuid": "5acfa667-0956-4e69-b9a5-95e206e6ba32",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"description": "string",
+"amount": 1,
+"currency": "USD",
+"refunded": false,
+"date": "2019-08-24T14:15:22Z",
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"merchant_name": "Merchant",
+"merchant_id": "1234"
+},
+"validation": {
+"error_code": "",
+"error_description": "",
+"cvv_result": "M",
+"avs_result": "A"
+}
+}
+Authorize Push
+Creates a push-to-card payment transaction. When successful, an Authorization and a Capture will simultaneously be performed.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+card_token
+required
+string <uuid> (Payment card token identifier)
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+external_id
+required
+string (Merchant payment order ID) [ 8 .. 64 ]
+This field is the Merchant's payment order ID that will be associated with this transaction and can be used to cross reference transactions as well as protect API against duplicate orders.
+
+NOTE: This field MUST be unique. Any subsequent transactions with same external_id will fail.
+
+Responses
+201 The transaction was created successfully. We will always create the transaction in our system. Please check result for the transaction operation result as this endpoint will always return a code 201. If DENIED, more details can be found in the validation field.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/payments/card/push
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"card_token": "0a748f37-9423-492c-a713-f006d3ab14bf",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"external_id": "string"
+}
+Response samples
+201400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "ACCEPTED",
+"payment_type": "AUTHCAP",
+"transaction": {
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"parent_transaction_uuid": "5acfa667-0956-4e69-b9a5-95e206e6ba32",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"description": "string",
+"amount": 1,
+"currency": "USD",
+"refunded": false,
+"date": "2019-08-24T14:15:22Z",
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"merchant_name": "Merchant",
+"merchant_id": "1234"
+},
+"validation": {
+"error_code": "",
+"error_description": "",
+"cvv_result": "M",
+"avs_result": "A"
+}
+}
+Cancel Transaction
+The Cancel endpoint is either a Void or a Refund for a given card transaction.
+
+A transaction can be voided only if it’s within the timeframe allowed by the card networks; if the transaction could not be voided, a new transaction will need to be created as a refund.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+transaction_uuid
+required
+string <uuid>
+This field is Alviere's internal unique transaction identifier and is required to reference the transaciton that we wish to perform an operation on, such as VOID or REFUND
+
+operation_type
+required
+string (Cancel operation type)
+Enum: "VOID" "REFUND"
+The Cancel operation type can be one of the following:
+
+VOID: This operation type will attempt to perform a void on the given transaction. A transaction can be voided only if it’s within the timeframe allowed by the card networks and will always require a network request. If a void is no longer possible, you can use a refund operation type instead.
+
+REFUND: This operation type will try to perform a refund on a transaction that can no longer be voided. If a transaction is in a state that can be voided, the refund will not be possible.
+
+Responses
+200 The Refund or Void transaction has been created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/payments/card/cancel
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"operation_type": "VOID"
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+{
+"operation_type": "REFUND",
+"transaction_uuid": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+"child_transaction_uuid": "798ee7f3-bb75-4a4c-9a2a-06cb697ddb5e"
+}
+Bank Processing
+This section describes how to execute payment ACH transactions, such as ACH Debits and ACH Credits.
+
+ACH is processed in Alviere based on the NACHA processing windows. Alviere posts transactions Monday to Friday at 12:15pm, except for official US bank holidays.
+
+There are two types of transactions supported for ACH:
+
+Same-Day ACH: Transactions processed before 12pm Eastern will be received/debited on the same day as the transaction.
+Next-Day ACH: Transactions processed after 12pm Eastern will be received/debited the day after the date of the transaction.
+Bank Debit
+Creates an ACH debit payment transaction. When successful, the ACH transaction is created and will be executed in the next processing window.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+bank_account_token
+required
+string <uuid> (ACH bank account token identifier)
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+auth_type
+required
+string
+Enum: "SAME_DAY" "NEXT_DAY"
+Can be Same-Day or Next-Day ACH.
+
+external_id
+required
+string (Merchant payment order ID) [ 8 .. 64 ]
+This field is the Merchant's payment order ID that will be associated with this transaction and can be used to cross reference transactions as well as protect API against duplicate orders.
+
+NOTE: This field MUST be unique. Any subsequent transactions with same external_id will fail.
+
+Responses
+201 The transaction was created successfully. We will always create the transaction in our system. Please check result for the transaction operation result as this endpoint will always return a code 201. If DENIED, more details can be found in the validation field.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/payments/ach/debit
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"bank_account_token": "33de11bf-8511-4db7-bea1-007048ea9e24",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"auth_type": "SAME_DAY",
+"external_id": "string"
+}
+Response samples
+201400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "ACCEPTED",
+"payment_type": "SAME_DAY",
+"transaction": {
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"parent_transaction_uuid": "5acfa667-0956-4e69-b9a5-95e206e6ba32",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"description": "string",
+"amount": 1,
+"currency": "USD",
+"refunded": false,
+"date": "2019-08-24T14:15:22Z",
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"merchant_name": "Merchant",
+"merchant_id": "1234"
+}
+}
+Bank Credit
+Creates an ACH credit payment transaction. When successful, the ACH transaction is created and will be executed in the next processing window.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+bank_account_token
+required
+string <uuid> (ACH bank account token identifier)
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount is the value associated with the request, in cents. e.g. If you want to debit 1 USD the value must be amount: 100
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+auth_type
+required
+string
+Enum: "SAME_DAY" "NEXT_DAY"
+Can be Same-Day or Next-Day ACH.
+
+external_id
+required
+string (Merchant payment order ID) [ 8 .. 64 ]
+This field is the Merchant's payment order ID that will be associated with this transaction and can be used to cross reference transactions as well as protect API against duplicate orders.
+
+NOTE: This field MUST be unique. Any subsequent transactions with same external_id will fail.
+
+Responses
+201 The transaction was created successfully. We will always create the transaction in our system. Please check result for the transaction operation result as this endpoint will always return a code 201. If DENIED, more details can be found in the validation field.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/payments/ach/credit
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"bank_account_token": "33de11bf-8511-4db7-bea1-007048ea9e24",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"auth_type": "SAME_DAY",
+"external_id": "string"
+}
+Response samples
+201400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "ACCEPTED",
+"payment_type": "SAME_DAY",
+"transaction": {
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"parent_transaction_uuid": "5acfa667-0956-4e69-b9a5-95e206e6ba32",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"description": "string",
+"amount": 1,
+"currency": "USD",
+"refunded": false,
+"date": "2019-08-24T14:15:22Z",
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"merchant_name": "Merchant",
+"merchant_id": "1234"
+}
+}
+Cancel Bank Transaction
+The Cancel endpoint is either a Void or a Refund for a given card transaction.
+
+A transaction can be voided only if it hasn't been issued to the FED, i.e. before the ACH processing window. if the transaction could not be voided, a new transaction will need to be created for a refund.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+transaction_uuid	
+string <uuid>
+This field is Alviere's internal unique transaction identifier and is required to reference the transaciton that we wish to perform an operation on, such as VOID or REFUND
+
+operation_type	
+string (Cancel operation type)
+Enum: "VOID" "REFUND"
+The Cancel operation type can be one of the following:
+
+VOID: This operation type will attempt to perform a void on the given transaction. A transaction can be voided only if it’s within the timeframe allowed by the card networks and will always require a network request. If a void is no longer possible, you can use a refund operation type instead.
+
+REFUND: This operation type will try to perform a refund on a transaction that can no longer be voided. If a transaction is in a state that can be voided, the refund will not be possible.
+
+Responses
+200 The Refund or Void transaction has been created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/payments/ach/cancel
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"operation_type": "VOID"
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+{
+"operation_type": "REFUND",
+"transaction_uuid": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+"child_transaction_uuid": "798ee7f3-bb75-4a4c-9a2a-06cb697ddb5e"
+}
+Card Issuance
+This section describes how to issue and manage cards with the Alviere platform.
+
+To issue cards, you'll need to have a Cardholder Program with Alviere.
+
+Card Types
+The Alviere platform supports the following types of cards:
+
+Type	Description
+DEBIT	This is a type of card that uses the balance of the user account wallet in order to authorize transactions.
+PREPAID	This is a type of card that needs to be preloaded with a balance in order to authorize transactions.
+GIFT CARD	This is a type of card that has a fixed balance preset at the moment of the issuance of the card.
+The main difference between a Debit or Prepaid card and a Gift Card is the latter does not require KYC to be performed.
+
+Card Products
+In the Alviere platform, each card on a program is identified by a unique product_id that will be provided to your company at the moment of the program setup.
+
+A product_id is always associated to only one of the card types mentioned above. Your program can support any number of card configurations and Alviere will assign individual product_id for each one of the cards.
+
+Product IDs also define if the card is issued virtually or physically, the design/card art of the card, carrier design (physical cards only), and all the settings, limitations, and fees of the card. These settings will be defined at the moment of the setup of your Cardholder Program, and cannot be set using the API.
+
+Shipping Address Rules
+The shipping address defines where a card is shipped to via postal service. This setting does not apply to virtual card products.
+
+Virtual card product types will not have this field present.
+This field is mandatory for Gift Card product types.
+For non-Gift Card programs, if this property is present, the card will be shipped to this address instead of the address found on the user account
+Card Statuses
+The following table details the issued card statuses in the Alviere platform:
+
+Type	Description
+CREATED	The card was created in the Alviere platform; this is the initial status for all card issuance requests.
+PENDING	The card is currently pending; this could happen due to a secondary ID verification.
+PROCESSING	The card is currently processing.
+ACTIVE	The card is active and ready to be used.
+FROZEN	The card is currently frozen and all transaction authorizations will be declined.
+SET_TO_EMBOSS	The card is set to be embossed by the manufacturing partner; this status is only applicable to physical card products.
+SHIPPED	The card has been shipped via mail; this status is only applicable to physical card products.
+READY_TO_ACTIVATE	The card is ready to be activated and for the PIN to be set; this status is only applicable to physical card products.
+RETURNED_MAIL	The card was returned via the postal service; this status is only applicable to physical card products.
+LOST_STOLEN	The card has been reported by the cardholder as stolen or lost; this is a final status.
+CANCELED	The card has been canceled and can no longer be used; this is a final status.
+EXPIRED	The card has expired; this is a final status.
+Incentives
+Alviere supports incentivization/bonuses for all of its cards.
+
+Two types of incentives are supported:
+
+Type	Description
+CASHBACK	The cardholder will receive into the balance of their account, a cashback of the defined amount/percentage after a successful authorization of a card transaction.
+BOOST	The card authorization will succeed if the balance + boost amount/percentage are equal or lower to the amount being authorized. For example, if the card balance is $100 and there's a BOOST incentive of 10%, the system will authorize a transaction up to $110.
+Incentives can be configured individually for each card issued through the API. You can configure an amount of the incentive and/or the valid merchants where the incentive is to be applied.
+
+The following rules are applied to the incentives:
+
+Percentage: This property defines the percentage of the authorization amount to apply the incentive (BOOST or CASHBACK)
+Cap: This property defines a cap for the incentive (BOOST or CASHBACK); for example, if you have a 10% cashback with a $5 cap, and the authorized transaction is $100, the value of the cashback into the cardholder's balance will be $5
+You can also limit the merchants where the incentives are to be applied; i.e. "only apply this incentive on purchases for merchant X". Merchant incentives can be applied to specific merchant IDs or to merchant names.
+
+In the case of merchant names, the system will do a match of the name; i.e. it will be applied as long as the merchant name exists in the merchant description field. For example, if this property is set to "Alviere", then a transaction for "Alviere, Inc." and a transaction for "Alviere Financial Services" will both apply.
+
+Allowed Merchants
+You can also specify that the card balance can only be spent on specific merchants; i.e. the card was issued with a balance that can only be spent on specific merchant(s).
+
+In the case of merchant names, the system will do a match of the name; for example, if this property is set to "Alviere", then a transaction for "Alviere, Inc." and a transaction for "Alviere Financial Services" will both apply.
+
+Create Card
+Creates a new card for the designated account_uuid.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+external_id
+required
+string (Your unique identification of the card in your system)
+This is your unique ID for this card. This field is used to guarantee idempotency.
+
+product_id
+required
+string (The product id corresponding to the card being created)
+This product ID is assigned to you by the Alviere team when you setup your card issuance service.
+
+initial_balance	
+integer (The initial balance this card will have) >= 1
+This is the initial balance that the card being issued will have, in cents (100 = 1$)
+
+Notes:
+
+This field only applies for Gift Card product types.
+This field is mandatory for Gift Card product types.
+If passing this field for other than Gift Card, the system will return a 400 error code.
+shipping_address	
+object (The address to ship the card to.)
+If not present, the system will send the card to the address defined in the user account profile.
+
+Notes:
+
+Virtual card product types will not have this field present.
+This field is mandatory for Gift Card product types.
+For non-Gift Card programs, if this property is present, the card will be shipped to this address instead of the address found on the user account
+auth_rules	
+object (The rules this card should use when authorizing a transaction.)
+custom_fields	
+object (Card custom fields)
+Allows setting of specific card fields
+
+metadata	
+object (Card metadata fields)
+Allows for any number of custom metadata keys and values to be stored with a given card
+
+service_fee	
+object (Card service fee)
+The structure containing service fees to be applied to a transaction.
+
+Responses
+201 The request was successful and the Card was created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+409 Conflict on the field external_id
+
+post
+/v1/cards/{account_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"external_id": "string",
+"product_id": "885",
+"initial_balance": 30000,
+"shipping_address": {
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+},
+"auth_rules": {
+"incentives": [],
+"allowed_merchants": {}
+},
+"custom_fields": {
+"emboss_id": "",
+"shipping_method": "DEFAULT",
+"name_on_card": "John Doe"
+},
+"metadata": {
+"key_example": "example",
+"key_example_2": 10
+},
+"service_fee": {
+"activation": {}
+}
+}
+Response samples
+201400401403409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"card": {
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"external_id": "string",
+"product_id": "885",
+"type": "DEBIT",
+"status": "CREATED",
+"balance": -99999999,
+"card_image": "U3dhZ2dlciByb2Nrcw==...",
+"shipping_address": {},
+"auth_rules": {},
+"custom_fields": {},
+"service_fee": {},
+"metadata": {},
+"blocked": true,
+"card_expiration": "05/21",
+"last_4": "1367",
+"status_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Get Cards
+Gets all the cards that are associated to a user account
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Returns all the cards issued for an account.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/cards/{account_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/cards/%7Baccount_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"cards": [
+{}
+]
+}
+Get Card
+Gets an existing card from the system.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Card details were returned.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/cards/{account_uuid}/{card_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/cards/%7Baccount_uuid%7D/%7Bcard_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"card": {
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"external_id": "string",
+"product_id": "885",
+"type": "DEBIT",
+"status": "CREATED",
+"balance": -99999999,
+"card_image": "U3dhZ2dlciByb2Nrcw==...",
+"shipping_address": {},
+"auth_rules": {},
+"custom_fields": {},
+"service_fee": {},
+"metadata": {},
+"blocked": true,
+"card_expiration": "05/21",
+"last_4": "1367",
+"status_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Update Card
+Updates the card authorization rules.
+
+Note: Status changes need to be submitted through the appropriate endpoints.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+auth_rules	
+object (The rules this card should use when authorizing a transaction.)
+metadata	
+object (Card metadata fields)
+Allows for any number of custom metadata keys and values to be stored with a given card
+
+shipping_address	
+object (The shipping address of the card to update)
+The card's updated shipping address
+
+Responses
+200 The card was updated successfully
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+patch
+/v1/cards/{account_uuid}/{card_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"auth_rules": {
+"incentives": [],
+"allowed_merchants": {}
+},
+"metadata": {
+"key_example": "example",
+"key_example_2": 10
+},
+"shipping_address": {
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"card": {
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"external_id": "string",
+"product_id": "885",
+"type": "DEBIT",
+"status": "CREATED",
+"balance": -99999999,
+"card_image": "U3dhZ2dlciByb2Nrcw==...",
+"shipping_address": {},
+"auth_rules": {},
+"custom_fields": {},
+"service_fee": {},
+"metadata": {},
+"blocked": true,
+"card_expiration": "05/21",
+"last_4": "1367",
+"status_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Cancel Card
+Cancels a card and put the status of the card to CANCELED
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 The card was successfully canceled
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/cards/{account_uuid}/{card_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/cards/%7Baccount_uuid%7D/%7Bcard_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Activate Card
+Activates a user card.
+
+Note: this method is only valid for physical card products.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+last_4
+required
+string^[0-9]{4}$
+The last 4 digits of the card
+
+expiration_date
+required
+string^(0[1-9]|1[0-2])/[0-9]{2}$
+The card's expiration date
+
+security_code	
+string^[0-9]{3}$
+The CVC/CVV of the card
+
+Responses
+204 The request was successful
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/cards/{account_uuid}/{card_uuid}/activate
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"last_4": "1234",
+"expiration_date": "02/25",
+"security_code": "123"
+}
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Freeze Card
+Freezes a card.
+
+All authorization requests will be declined when a card is frozem
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 The request was successful
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/cards/{account_uuid}/{card_uuid}/freeze
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request POST \
+  --url https://api.snd.alviere.com/v1/cards/%7Baccount_uuid%7D/%7Bcard_uuid%7D/freeze \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Unfreeze Card
+Unfreezes a card.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 The request was successful
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/cards/{account_uuid}/{card_uuid}/unfreeze
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request POST \
+  --url https://api.snd.alviere.com/v1/cards/%7Baccount_uuid%7D/%7Bcard_uuid%7D/unfreeze \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Add Digital Wallet
+Implements the flow to retrieve the MDES token for digital wallets.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSlTbd...
+The access token.
+
+Request Body schema: application/json
+required
+wallet_provider
+required
+integer
+1, 2, or 3 for Apple Pay, Google Pay, or Samsung Pay respectively. The last 4 digits of the card https://sandbox.gpsrv.com/docs/intserv#createprovisioningrequest
+
+cert_1
+required
+string
+The leaf certificate returned by the wallet provider, that was signed using cert2. Should be hexified (case insensitive) binary data of the certificate.
+
+If the certificatee is in PEM encoding, then it should follow the typical standards for PEM. In particular, the tags -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- shuld be present and the Base64-encoded value should have lines of length 64.
+
+cert_2
+required
+string
+The subordinate certificate returned by the wallet provider that was signed using the Wallet Provider's Certificate Authority (CA) certififcate.
+
+Should be the hexified (case insensitive) binary data of the certificate. If the certificate is in PEM encoding, then it should follow the typical standards for PEM. In particular, the tags -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- should be present and the Base64-encoded value should have lines of length64.
+
+nonce
+required
+string
+Nonce value returned by the wallet-provider. This field is required for Apple Pay but not for Google and Samsung Pay.
+
+nonce_signature
+required
+string
+Nonce signature value returned by the wallet-provider. This field is required for Apple Pay but not for Google and Samsung Pay.
+
+Responses
+200 The request was successful. The result property will show if this operation succeeded or failed.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+post
+/v1/cards/{account_uuid}/{card_uuid}/mdes
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"wallet_provider": 1,
+"cert_1": "string",
+"cert_2": "string",
+"nonce": "9c023092",
+"nonce_signature": "4082f883ae62..."
+}
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"result": "SUCCESS",
+"error_code": 100012,
+"card": {
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"external_id": "string",
+"product_id": "885",
+"type": "DEBIT",
+"status": "CREATED",
+"balance": -99999999,
+"card_image": "U3dhZ2dlciByb2Nrcw==...",
+"shipping_address": {},
+"auth_rules": {},
+"custom_fields": {},
+"service_fee": {},
+"metadata": {},
+"blocked": true,
+"card_expiration": "05/21",
+"last_4": "1367",
+"status_reason": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z"
+}
+}
+Get Card Sensitive data
+Gets a Card Sensitive data.
+
+path Parameters
+account_uuid
+required
+string <uuid> (Account UUID)
+The uuid of the account
+
+card_uuid
+required
+string <uuid> (Card UUID)
+The uuid of the card
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 The request was successful
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/cards/{account_uuid}/{card_uuid}/sensitive-data
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/cards/%7Baccount_uuid%7D/%7Bcard_uuid%7D/sensitive-data \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+{
+"card_pan": "string",
+"card_security_code": "123"
+}
+Reporting
+Use the Reporting API to get all transactions processed by Alviere and to check the statuses of transactions, such as their settlement status.
+
+Below are the statuses that will be returned from the API on the status property:
+
+Status	Description
+CREATED	We have received the transaction and accepted it for processing.
+IN_TRANSIT	The transaction has been authorized by the network and has not yet settled.
+FAILED	The transaction authorization has failed; the details of the reason for the failure will be in the details of the response.
+VOIDED	This transaction was voided by the merchant before it settled.
+SETTLED	The transaction has been settled and the funds are on their way to the merchant's banks.
+COMPLETED	This is a status that happens after the settlement (ie. transactions in this status are already settled); in future versions of the API this will mean that the webhook was called.
+Payment transaction details
+Retrieve payment transaction details.
+
+path Parameters
+uuid
+required
+any <uuid>
+The payment transaction identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Success
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/reports/payments/{uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/reports/payments/%7Buuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200401403404
+Content type
+application/json
+
+Copy
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"parent_transaction_uuid": "5acfa667-0956-4e69-b9a5-95e206e6ba32",
+"type": "CARD_CREDIT",
+"status": "CREATED",
+"description": "string",
+"amount": 1,
+"currency": "USD",
+"refunded": false,
+"date": "2019-08-24T14:15:22Z",
+"card_uuid": "619b66c3-545c-4dec-a69b-523036c20234",
+"merchant_name": "Merchant",
+"merchant_id": "1234"
+}
+Transactions list
+Show payment transaction list.
+
+query Parameters
+limit	
+integer [ 1 .. 500 ]
+Default: 10
+The number of items per page.
+
+offset	
+integer >= 0
+Default: 0
+start after offset amount of records
+
+start_date	
+string^(?:\d{4})(?:\d{2})(?:\d{2})(?:\d{2})(?:\d{2}...Show pattern
+Start date for search payment transactions (format YYYYMMDDhhmmss in UTC) - default is First Created Transaction date time.
+
+status	
+string
+Enum: "CREATED" "PROCESSING" "IN_TRANSIT" "FAILED" "ERROR" "CANCELED" "VOIDED" "SETTLED" "COMPLETED" "PENDING" "MANUAL_REVIEW" "PROMOTED"
+The transaction status details the current status of the transaction during its life-cycle.
+
+type	
+string
+Enum: "CARD_CREDIT" "CARD_REFUND" "CARD_DEBIT" "EXTERNAL_CREDIT" "WITHDRAW_FUNDS" "LOAD_FUNDS" "CARD_ISSUED_DEBIT" "CARD_ISSUED_CREDIT" "CARD_ISSUED_INITIAL" "CARD_ISSUED_RESET" "CARD_ISSUED_ATM_DEBIT" "INTERNAL_TRANSFER_CREDIT" "INTERNAL_TRANSFER_DEBIT" "BANK_CREDIT" "ADJUSTMENT" "ADJUSTMENT_ROLLBACK" "AUTO_LOAD_FUNDS" "AUTO_WITHDRAW_FUNDS" "CHARGEBACK" "CHARGEBACK_LOSS" "CHARGEBACK_REVERSAL" "CUSTOMER_CREDIT" "RECEIVE_CUSTOMER_CREDIT" "REFUND" "RETURN" "RETURN_LOSS" "RETURN_REVERSAL" "ROLLBACK" "ROLLBACK_RECEIVE" "SERVICE_FEE" "SERVICE_FEE_REVERSAL" "NEGATIVE_LOSS" "INTERNAL_PARTIAL" "TRANSFER" "INTERNATIONAL_TRANSFER"
+The payment transaction type details either the direction of funds flow such as debits or credits, or other types such as refunds.
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 Success
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+
+get
+/v1/reports/payments
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url 'https://api.snd.alviere.com/v1/reports/payments?limit=SOME_INTEGER_VALUE&offset=SOME_INTEGER_VALUE&start_date=SOME_STRING_VALUE&status=SOME_STRING_VALUE&type=SOME_STRING_VALUE' \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"records": 1,
+"transactions": [
+{}
+]
+}
+Remittances
+Use Alviere cross-border payments API to transfer funds with integrated risk management, configurable fees and high availability.
+
+Create Beneficiary
+Create new Beneficiary.
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+first_name
+required
+string
+The beneficiary's first name
+
+last_name
+required
+string
+The beneficiary's last name
+
+date_of_birth	
+string
+The beneficiary's date of birth
+
+country
+required
+string (Country) ^[A-Z]{3}$
+Three-letter country code (ISO 3166-1 alpha-3).
+
+currency
+required
+string
+The currency code in ISO-4217 format.
+
+external_id
+required
+string
+The unique identifier of this beneficiary in your own system.
+
+Note: This is used for idempotency check
+
+bank_account_details	
+object
+The bank account details need to be one of the structures, either ach or eft or iban or swift or clabe.
+
+Note: Use only one of below. Which structure to use ties with the type of bank account above.
+
+address	
+object
+Responses
+201 The request was successful and the new Beneficiary was created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/remittances/{account_uuid}/beneficiaries
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"first_name": "John",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"country": "USA",
+"currency": "USD",
+"external_id": "string",
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+},
+"address": {
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"beneficiary_uuid": null,
+"status": "CREATED",
+"status_reason": "string",
+"country": "USA",
+"first_name": "John",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"currency": "string",
+"external_id": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z",
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+},
+"address": {
+"address_uuid": "b024fcf3-b7af-4352-b405-f9bc29df7f7e",
+"primary": true,
+"label": "Home Address",
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Get Beneficiaries
+Gets all Beneficiaries associated to a user account
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 OK
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/remittances/{account_uuid}/beneficiaries
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/remittances/%7Baccount_uuid%7D/beneficiaries \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"beneficiaries": [
+{}
+]
+}
+Update Beneficiary
+Updates a Beneficiary.
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+beneficiary_uuid
+required
+any <uuid>
+The beneficiary identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+first_name	
+string
+The beneficiary's first name
+
+last_name	
+string
+The beneficiary's last name
+
+date_of_birth	
+string
+The beneficiary's date of birth
+
+country	
+string (Country) ^[A-Z]{3}$
+Three-letter country code (ISO 3166-1 alpha-3).
+
+currency	
+string
+The currency code in ISO-4217 format.
+
+bank_account_details	
+object
+The bank account details need to be one of the structures, either ach or eft or iban or swift or clabe.
+
+Note: Use only one of below. Which structure to use ties with the type of bank account above.
+
+address	
+object
+Responses
+200 The Beneficiary was updated.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+patch
+/v1/remittances/{account_uuid}/beneficiaries/{beneficiary_uuid}
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"first_name": "John",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"country": "USA",
+"currency": "USD",
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+},
+"address": {
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Response samples
+200400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"beneficiary_uuid": null,
+"status": "CREATED",
+"status_reason": "string",
+"country": "USA",
+"first_name": "John",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"currency": "string",
+"external_id": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z",
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+},
+"address": {
+"address_uuid": "b024fcf3-b7af-4352-b405-f9bc29df7f7e",
+"primary": true,
+"label": "Home Address",
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Get Beneficiary
+Gets a Beneficiary.
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+beneficiary_uuid
+required
+any <uuid>
+The beneficiary identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+200 OK
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+get
+/v1/remittances/{account_uuid}/beneficiaries/{beneficiary_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request GET \
+  --url https://api.snd.alviere.com/v1/remittances/%7Baccount_uuid%7D/beneficiaries/%7Bbeneficiary_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+200400401403404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"beneficiary_uuid": null,
+"status": "CREATED",
+"status_reason": "string",
+"country": "USA",
+"first_name": "John",
+"last_name": "Doe",
+"date_of_birth": "1976-02-07",
+"currency": "string",
+"external_id": "string",
+"created_at": "2021-06-17T11:02:08.143Z",
+"updated_at": "2021-08-02T05:32:11.345Z",
+"bank_account_details": {
+"ach": {},
+"eft": {},
+"swift": {},
+"clabe": {},
+"iban": {}
+},
+"address": {
+"address_uuid": "b024fcf3-b7af-4352-b405-f9bc29df7f7e",
+"primary": true,
+"label": "Home Address",
+"line_1": "101 Avennue of the Americas",
+"line_2": "Suite 936",
+"postal_code": "10013",
+"city": "New York",
+"state": "NY",
+"country": "USA"
+}
+}
+Delete Beneficiary
+Deletes a Beneficiary.
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+beneficiary_uuid
+required
+any <uuid>
+The beneficiary identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Responses
+204 Beneficiary successfully deleted
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+
+delete
+/v1/remittances/{account_uuid}/beneficiaries/{beneficiary_uuid}
+
+Request samples
+Shell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+
+Copy
+curl --request DELETE \
+  --url https://api.snd.alviere.com/v1/remittances/%7Baccount_uuid%7D/beneficiaries/%7Bbeneficiary_uuid%7D \
+  --header 'Authorization: SOME_STRING_VALUE'
+Response samples
+400401403404
+Content type
+application/json
+
+Copy
+{
+"error_code": "50001",
+"error_description": "Missing required property in payload"
+}
+Create Quote
+Creates a new quote to inform the user of the costs associated with sending money to a specific beneficiary.
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+amount
+required
+integer [ 1 .. 99999999 ]
+The amount to be sent to the beneficiary, in cents. e.g. If you want to get a quote for a transaction of 1 USD, the value must be 100
+
+beneficiary_uuid
+required
+any <uuid>
+The beneficiary identifier
+
+amount_currency
+required
+string
+Provides the ability to create a quote with the amount either in the origin or the destination currency:
+
+If the value on this property is ORIGIN_CURRENCY the expected amount on the amount property should be in the base currency of the program.
+
+If the value on this property is DESTINATION_CURRENCY the expected amount on the amount property should be in the destination currency of the transaction.
+
+exchange_rate	
+string
+The exchange rate to be applied to this transaction; it is only possible to use this parameter if the business account allows for external management of exchange rates.
+
+exchange_rate_markup	
+number <float> [ 0 .. 100 ]
+The exchange rate markup to perform on the mid-market rate. This is a percent value
+
+service_fees	
+Array of objects (service fees)
+The array of Service Fees objects as per system definition (only UPCHARGE type service fees will be supported for quotes)
+
+Responses
+201 The request was successful and the new Quote was created.
+400 Bad Request
+401 Unauthorized
+404 Not Found
+
+post
+/v1/remittances/{account_uuid}/quote
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"amount": 1000,
+"beneficiary_uuid": null,
+"amount_currency": "ORIGIN_CURRENCY",
+"exchange_rate": "1.1503",
+"exchange_rate_markup": 3.4,
+"service_fees": [
+{}
+]
+}
+Response samples
+201400401404
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"quote": {
+"quote_uuid": null,
+"exchange_rate": "1.1503",
+"send_amount": 1000,
+"currency": "string",
+"transaction_cost": 100,
+"expires_at": "2019-08-24T14:15:22Z",
+"service_fees": []
+}
+}
+Create Transaction
+Creates a new remittances transaction that transfer money
+
+path Parameters
+account_uuid
+required
+any <uuid>
+The user account identifier
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+quote_uuid
+required
+any <uuid>
+The UUID of the quote that is being used for the transaction
+
+token	
+any <uuid>
+UUID of the Payment method to use
+
+description
+required
+string
+A small description to identify the transaction
+
+Responses
+201 The request was successful and the new Remittance Transaction was created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict
+
+post
+/v1/remittances/{account_uuid}/transaction
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"quote_uuid": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+"token": "497f6eca-1234-4993-bfeb-53cbbbba6f08",
+"description": "transfer for christmas money"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "497f6eca-1234-4993-bfeb-53cbbbba6aac",
+"validation": {
+"error_code": "string",
+"error_description": "string"
+}
+}
+Treasury Management
+Use Alviere integrated Treasury Management API to fund and/or move funds across all you internal accounts.
+
+Create load transaction
+Creates a load transaction (load money into special account).
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+token
+required
+string <uuid>
+The ID of the the payment method.
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount to be loaded into the special account.
+
+NOTE: the amount it is in cents.
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+external_id
+required
+string
+The ID of this user in your own platform. This will be associated with this account and can be used to identify the account as well as protect our API against duplicate accounts.
+
+NOTE: This field MUST be unique. Any subsequent Create Users with same external_id will fail with a HTTP 409.
+
+Responses
+201 The transaction was successfully created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/treasury/{account_uuid}/load
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Create withdraw transaction
+Creates a withdraw transaction (withdraw money from special account).
+
+path Parameters
+account_uuid
+required
+string <uuid>
+The uuid of the account
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+token
+required
+string <uuid>
+The ID of the the payment method.
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount to be loaded into the special account.
+
+NOTE: the amount it is in cents.
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+external_id
+required
+string
+The ID of this user in your own platform. This will be associated with this account and can be used to identify the account as well as protect our API against duplicate accounts.
+
+NOTE: This field MUST be unique. Any subsequent Create Users with same external_id will fail with a HTTP 409.
+
+Responses
+201 The transaction was successfully created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/treasury/{account_uuid}/withdraw
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"token": "b5507016-7da2-4777-a161-1e8042a6a377",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Create transfer transaction
+Creates a transfer transaction (transfers money between special accounts).
+
+header Parameters
+Authorization
+required
+string
+Example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI...
+The access token.
+
+Request Body schema: application/json
+required
+origin_uuid
+required
+string <uuid>
+Origin account.
+
+destination_uuid
+required
+string <uuid>
+Destination account.
+
+transaction_amount
+required
+integer [ 1 .. 99999999 ]
+The amount to be loaded into the special account.
+
+NOTE: the amount it is in cents.
+
+transaction_currency
+required
+string
+The currency code in ISO-4217 format.
+
+external_id
+required
+string
+The ID of this user in your own platform. This will be associated with this account and can be used to identify the account as well as protect our API against duplicate accounts.
+
+NOTE: This field MUST be unique. Any subsequent Create Users with same external_id will fail with a HTTP 409.
+
+Responses
+201 The transaction was successfully created.
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict on the field external_id
+
+post
+/v1/treasury/transfer
+
+Request samples
+PayloadShell + CurlGo + NativePython + Python3Php + CurlSwift + Nsurlsession
+Content type
+application/json
+
+Copy
+{
+"origin_uuid": "311e21cd-c040-4b48-bc92-4bc16db9c2a0",
+"destination_uuid": "ae912566-538e-414e-a105-207d488ce798",
+"transaction_amount": 1,
+"transaction_currency": "USD",
+"external_id": "string"
+}
+Response samples
+201400401403404409
+Content type
+application/json
+
+Copy
+Expand allCollapse all
+{
+"transaction_uuid": "3a6bcbed-b7dc-4791-84fe-b20f12be4001",
+"payment_transaction": {
+"result": "ACCEPTED",
+"transaction": {}
+},
+"balance": {
+"balance": 0.1,
+"in_transit": 0.1,
+"captive": 0.1
+},
+"validation": {
+"error_code": "500012",
+"error_description": "Payment method is invalid"
+}
+}
+Webhooks
+Webhooks can be used to get events from Alviere. For example, when a transaction is settled, Alviere can send an event to your webhook consumer with information about the transaction.
+
+Events are grouped into Subscriptions and each Subscription event will be posted into a URL provided by you at the moment of the subscription.
+
+Note: Alviere sends all events asynchronously so that it doesn't block or slow down any system operation or transaction. All events are actions that already took place.
+
+Subscriptions
+Alviere provides three different subscription types available:
+
+ACCOUNT provides information about the lifecycle of consumers’ accounts
+TRANSACTION provides information about the lifecycle of transactions
+ISSUED_CARD provides information about the lifecycle of all Cards Issued by Alviere
+BANK provides information about the lifecycle of all Banks Issued by Alviere
+Payloads for ACCOUNT Subscription Type
+{
+  "event_id": "082fd7f7-7e9e-4679-bd16-ed9f5a55d827",
+  "event_date": "2021-09-28T16:26:32+00:00",
+  "event_retry":  0,
+  "event_type": "ACCOUNT",
+  "event_account_uuid": "04d3ac6e-82d3-4f52-b82f-6cc0320928af",
+  "entity":  {
+    "account_uuid": "04d3ac6e-82d3-4f52-b82f-6cc0320928af",
+    "external_id": "string",
+    "stage": "string",
+    "status": "ACTIVE",
+    "status_reason": "string",
+    "type": "CONSUMER",
+    "personal_information": {
+      "date_of_birth": "string",
+      "email_address": "string",
+      "first_name": "string",
+      "last_name": "string",
+      "middle_name": "string",
+      "phone_number": "string",
+      "ssn": "string"
+    },
+    "addresses": [
+      {
+        "address_uuid": "3685ee4f-785c-443d-b63e-c9872c40cc5e",
+        "city": "string",
+        "country": "string",
+        "label": "string",
+        "line_1": "string",
+        "line_2": "string",
+        "postal_code": "string",
+        "primary": true,
+        "state": "string"
+      }
+    ]
+  }
+}
+Payloads for TRANSACTION Subscription Type
+{
+  "event_id": "082fd7f7-7e9e-4679-bd16-ed9f5a55d827",
+  "event_date": "2021-09-28T16:26:32+00:00",
+  "event_retry":  0,
+  "event_type": "TRANSACTION",
+  "event_account_uuid": "04d3ac6e-82d3-4f52-b82f-6cc0320928af",
+  "entity":  {
+    "parent_transaction_uuid": "00000000-0000-0000-0000-000000000000",
+    "transaction_uuid": "c2755c26-5747-45be-b842-298c03ff0e33",
+    "type": "string",
+    "status": "string",
+    "external_id": "string",
+    "amount": 10000,
+    "refunded": false,
+    "currency": "string",
+    "exchange_rate": 1.14,
+    "description": "string",
+    "fraud_risk_score": 100,
+    "issued_card": {
+      "card_uuid": "00000000-0000-0000-0000-000000000000",
+      "merchant_name": "string",
+      "merchant_id": "1234"
+    },
+    "payment_method": {
+      "payment_method_uuid": "00000000-0000-0000-0000-000000000000"
+    },
+    "dda": {
+      "origin_bank": "string",
+      "payroll": true
+    },
+    "created_at": "2021-08-11",
+    "updated_at": "2021-08-11"
+  }
+}
+Payloads for ISSUED_CARD Subscription Type
+{
+  "event_id": "082fd7f7-7e9e-4679-bd16-ed9f5a55d827",
+  "event_date": "2021-09-28T16:26:32+00:00",
+  "event_retry":  0,
+  "event_type": "ISSUED_CARD",
+  "event_account_uuid": "04d3ac6e-82d3-4f52-b82f-6cc0320928af",
+  "entity":  {
+    "balance": 10000,
+    "blocked": false,
+    "card_expiration": "string",
+    "card_image": "string",
+    "card_uuid": "34dcbb82-f26f-4efd-9155-2e0e3ee4f83a",
+    "external_id": "30aa7e65-6a51-4d8c-b973-f530c18abc7f",
+    "metadata": {},
+    "product_id": "string",
+    "service_fee": {},
+    "status": "CREATED",
+    "status_reason": "string",
+    "type": "DEBIT",
+    "shipping_address": {
+      "city": "string",
+      "country": "string",
+      "line_1": "string",
+      "line_2": "string",
+      "postal_code": "string",
+      "state": "string"
+    },
+    "auth_rules": {
+      "allowed_merchants": {
+        "allowed_merchant_ids": [],
+        "allowed_merchant_names": ["string"]
+      },
+      "incentives": []
+    },
+    "custom_fields": {
+      "emboss_id": "string",
+      "name_on_card": "string",
+      "shipping_method": "string"
+    }
+  }
+}
+Payloads for BANK
+{
+  "event_id": "082fd7f7-7e9e-4679-bd16-ed9f5a55d827",
+  "event_date": "2021-09-28T16:26:32+00:00",
+  "event_retry":  0,
+  "event_type": "BANK",
+  "event_account_uuid": "04d3ac6e-82d3-4f52-b82f-6cc0320928af",
+  "entity":  {
+    "bank_uuid": "04d3ac6e-82d3-4f52-b82f-6cc0320928af",
+    "external_id": "string",
+    "status": "string",
+    "type": "string",
+    "format": string,
+    "country": "string",
+    "currency": "string",
+    "is_plaid": boolean,
+    "flags": {
+      "debit": boolean,
+      "credit: boolean"
+    },
+    "fail_reason": "string",
+    "bank_account_details": {
+      "ach": {
+        "account_number_last_4": "string",
+        "routing_number": "string",
+      },
+      "eft": {
+        "account_number_last_4": "string",
+        "transit_number": "string",
+        "institution_code": "string",
+      },
+      "iban": {
+        "iban_number": "string",
+      },
+      "swift": {
+        "account_number_last_4": "string",
+        "bic_code": "string",
+      }
+    },
+    "created_at": "2021-09-28T16:26:32+00:00",
+    "updated_at": "2021-09-28T16:26:32+00:00"
+  }
+}
+Authentication
+Each subscription requires the following information:
+
+Subscription Type
+Target endpoint (needs to be a complete HTTPS URL)
+The required security key (you must setup one and give us)
+When we call the desired HTTPS URL, we will include an HEADER called Alviere-Auth and the value of this HEADER will be the security key you provided to us.
+
+Processing
+Each time we send a message for the provided URL, we expect a 200 HTTP status code, otherwise we will retry the event applying a polynomial backoff starting at 20ms and going up to 2 minutes after each retry.
+
+NOTE that we will continuously retry sending the message and this will impact any other messages in the queue as we strictly maintain messages in order (FIFO).
+
+How to subscribe
+Please contact your implementation manager for more information.
