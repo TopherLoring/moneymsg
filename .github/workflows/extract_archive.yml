@@ -1,0 +1,117 @@
+# Run this workflow manually from the Actions tab (workflow_dispatch)
+# It extracts MoneyMsg-project_root.zip into the repo root, excludes common build/vendor dirs,
+# pushes to branch extract/moneymsg-project_root and opens a PR.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write    # allow committing/pushing and creating PRs using GITHUB_TOKEN
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up variables
+        run: |
+          echo "BRANCH=extract/moneymsg-project_root" >> $GITHUB_ENV
+          echo "ZIP=MoneyMsg-project_root.zip" >> $GITHUB_ENV
+
+      - name: Ensure branch exists (create from default branch)
+        run: |
+          git fetch origin
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+          echo "Default branch: $DEFAULT_BRANCH"
+          # create branch from default branch if not exists
+          if git rev-parse --verify origin/${BRANCH} >/dev/null 2>&1; then
+            echo "Branch ${BRANCH} already exists on origin"
+            git checkout -b "${BRANCH}" "origin/${BRANCH}"
+          else
+            git checkout -b "${BRANCH}" "origin/${DEFAULT_BRANCH}"
+          fi
+
+      - name: Unzip archive to temp directory
+        run: |
+          TMPDIR=$(mktemp -d)
+          echo "Extracting $ZIP to $TMPDIR"
+          if [ -f "$ZIP" ]; then
+            unzip -q "$ZIP" -d "$TMPDIR"
+          else
+            echo "$ZIP not found in repo root; failing"
+            ls -la
+            exit 1
+          fi
+          echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
+
+      - name: Copy files into repo root excluding common build/vendor dirs
+        run: |
+          # rsync will copy content of $TMPDIR into repo root
+          rsync -av --progress "$TMPDIR"/ ./ \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude 'build' \
+            --exclude '.cache' \
+            --exclude '.git' \
+            --delete     # optional: remove files in repo that aren't in extracted tree; remove if undesired
+
+      - name: Ensure .gitignore contains exclusions
+        run: |
+          touch .gitignore
+          grep -qF "node_modules/" .gitignore || echo -e "\n# extracted archive ignores\nnode_modules/\ndist/\nbuild/\n.cache/" >> .gitignore
+          git add .gitignore
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit changes (if any)
+        id: commit
+        run: |
+          git add -A
+          # check for changes
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "committed=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "Extract MoneyMsg-project_root.zip into repository root (exclude node_modules, dist, build, .cache)"
+            git push -u origin "${BRANCH}"
+            echo "committed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create pull request (if we committed)
+        if: steps.commit.outputs.committed == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = process.env.BRANCH;
+            const base = context.repo.default_branch;
+            const title = "Extract MoneyMsg project root archive into repo";
+            const body = "This PR extracts the files from MoneyMsg-project_root.zip into the repository root.\n\nExcluded folders: node_modules, dist, build, .cache.\n\nPlease review for large binaries and consider Git LFS or removing generated artifacts.";
+            // Check for existing PR from branch
+            const existing = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: "open"
+            });
+            if (existing.data.length > 0) {
+              console.log("Open PR already exists:", existing.data[0].html_url);
+              return { pr_url: existing.data[0].html_url };
+            }
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              head: branch,
+              base,
+              body
+            });
+            console.log("Created PR:", pr.data.html_url);
+            return { pr_url: pr.data.html_url }
