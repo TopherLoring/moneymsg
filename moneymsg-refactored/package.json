@@ -1,0 +1,46 @@
+{
+  "name": "moneymsg-backend",
+  "version": "0.2.0",
+  "description": "MoneyMsg Fastify backend (Cloud Run)",
+  "main": "dist/app/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "ts-node-dev --respawn src/app/server.ts",
+    "start": "node dist/app/server.js",
+    "dev:sweeper": "ts-node-dev --respawn src/jobs/intent-sweeper.ts",
+    "start:sweeper": "node dist/jobs/intent-sweeper.js",
+    "dev:request-sweeper": "ts-node-dev --respawn src/jobs/request-sweeper.ts",
+    "start:request-sweeper": "node dist/jobs/request-sweeper.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate:pg",
+    "lint": "echo 'No linter configured'",
+    "smoke": "node dist/app/server.js & server_pid=$!; sleep 2; curl -f http://localhost:8080/health; kill $server_pid"
+  },
+  "keywords": [
+    "fastify",
+    "drizzle",
+    "moneymsg"
+  ],
+  "author": "TopherLoring Industries",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.45.1",
+    "fastify": "^5.8.2",
+    "pg": "^8.20.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/pg": "^8.18.0",
+    "drizzle-kit": "^0.31.9",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  }
+}
