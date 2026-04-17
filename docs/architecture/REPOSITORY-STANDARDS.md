@@ -1,18 +1,19 @@
 # MoneyMsg Repository Standards
 
-––––––––––––––––––––––––––––––
-VERSION TRACKING
-––––––––––––––––––––––––––––––
-Version:     v1.0.0
-Updated:     2026.04.17
-Status:      Review
-Parent:      TopherLoring Industries
-Project:     MoneyMsg
-Author:      Christopher Rowden
-––––––––––––––––––––––––––––––
-CHANGELOG
-––––––––––––––––––––––––––––––
-v1.0.0 — 2026.04.17
+## Version Tracking
+
+| Field | Value |
+|---|---|
+| Version | v1.0.0 |
+| Updated | 2026.04.17 |
+| Status | Review |
+| Parent | TopherLoring Industries |
+| Project | MoneyMsg |
+| Author | Christopher Rowden |
+
+## Changelog
+
+### v1.0.0 — 2026.04.17
 
 - Initial release
 - Defined repository structure standards for MoneyMsg
