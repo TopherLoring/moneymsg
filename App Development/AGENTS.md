@@ -235,7 +235,10 @@ moneymsg/
 ├── companion/
 ├── Dockerfile
 ├── drizzle.config.ts
+├── NEWS.md
 ├── package.json
+├── RELEASES.md
+├── TODO.md
 └── tsconfig.json
 ```
 
@@ -375,6 +378,7 @@ When working on this project:
 - treat the current backend as an execution core to harden and extend, not rewrite blindly
 - preserve provider roles unless explicitly directed otherwise
 - prefer building upward with orchestration, support, and operations layers
+- maintain an active TODO and changelog
 - do not regress to a raw-link UX when producing user-facing flows
 - include production survivability systems in any serious plan: support, disputes, admin ops, notifications, compliance, fraud ops, recovery, and legal/consent tracking
 
