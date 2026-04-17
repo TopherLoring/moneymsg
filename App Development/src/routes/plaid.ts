@@ -1,14 +1,18 @@
 import { FastifyInstance } from "fastify";
+import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { fundingSources } from "../db/schema";
+import { fundingSources, users } from "../db/schema";
 import { AppError, toErrorResponse } from "../lib/errors";
 import { createLinkToken, exchangePublicToken } from "../services/plaid";
-import { requireApiKey } from "../lib/auth";
+import { requireAuth, assertOwnershipOrElevated } from "../lib/authz";
+import { RATE_LIMITS } from "../lib/rateLimit";
 
 export async function plaidRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/plaid/create-link-token",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.plaid },
       schema: {
         body: {
           type: "object",
@@ -19,8 +23,15 @@ export async function plaidRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId } = request.body as { userId: string };
+
+        // Ownership: caller must be the target user or elevated role
+        assertOwnershipOrElevated(request, userId);
+
+        // Verify user exists
+        const [user] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
+        if (!user) throw new AppError("User not found", "NOT_FOUND", 404);
+
         const { link_token } = await createLinkToken(userId);
         return reply.send({ link_token });
       } catch (err) {
@@ -33,6 +44,8 @@ export async function plaidRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/plaid/exchange",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.plaid },
       schema: {
         body: {
           type: "object",
@@ -50,7 +63,6 @@ export async function plaidRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId, publicToken, accountId, routingTarget, institutionName, mask } = request.body as {
           userId: string;
           publicToken: string;
@@ -59,6 +71,13 @@ export async function plaidRoutes(app: FastifyInstance) {
           institutionName: string;
           mask: string;
         };
+
+        // Ownership: caller must be the target user or elevated role
+        assertOwnershipOrElevated(request, userId);
+
+        // Verify user exists
+        const [user] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
+        if (!user) throw new AppError("User not found", "NOT_FOUND", 404);
 
         const { processorToken, itemId } = await exchangePublicToken({ publicToken, accountId, routingTarget });
 

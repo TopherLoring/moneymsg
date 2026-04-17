@@ -4,11 +4,15 @@ import { db } from "../db";
 import { users, wallets } from "../db/schema";
 import { AppError, toErrorResponse } from "../lib/errors";
 import { submitKyc } from "../services/alviere-kyc";
+import { requireAuth, assertOwnershipOrElevated } from "../lib/authz";
+import { RATE_LIMITS } from "../lib/rateLimit";
 
 export async function kycRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/kyc/submit",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.kyc },
       schema: {
         body: {
           type: "object",
@@ -23,6 +27,9 @@ export async function kycRoutes(app: FastifyInstance) {
     async (request, reply) => {
       try {
         const { userId, kycData } = request.body as { userId: string; kycData: Record<string, unknown> };
+
+        // Ownership: caller must be the target user or elevated role
+        assertOwnershipOrElevated(request, userId);
 
         const [user] = await db.select().from(users).where(eq(users.id, userId));
         if (!user) throw new AppError("User not found", "NOT_FOUND", 404);

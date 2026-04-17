@@ -21,7 +21,14 @@ function verifyHmac(body: string, signature: string | undefined, secret: string 
   }
   hmac.update(body, "utf8");
   const digest = hmac.digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+
+  // Guard: timingSafeEqual requires equal-length buffers.
+  // Mismatched lengths → reject immediately (not a timing leak for length).
+  const digestBuf = Buffer.from(digest, "utf8");
+  const sigBuf = Buffer.from(signature, "utf8");
+  if (digestBuf.length !== sigBuf.length) return false;
+
+  return crypto.timingSafeEqual(digestBuf, sigBuf);
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
