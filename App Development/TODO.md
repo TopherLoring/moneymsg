@@ -3,8 +3,8 @@
 ––––––––––––––––––––––––––––––
 VERSION TRACKING
 ––––––––––––––––––––––––––––––
-Version:     v1.0.0
-Updated:     2026.04.16
+Version:     v1.1.0
+Updated:     2026.04.17
 Status:      In Progress
 Parent:      TopherLoring Industries
 Project:     MoneyMsg
@@ -12,9 +12,16 @@ Author:      Christopher Rowden
 ––––––––––––––––––––––––––––––
 CHANGELOG
 ––––––––––––––––––––––––––––––
+v1.1.0 — 2026.04.17
+- Hardened financial integrity requirements
+- Added Idempotency Key support for API execution
+- Integrated Immutable Audit Trail requirements
+- Added Risk Engine "Shadow Mode" for tuning
+- Added IME fail-safe/bypass requirements
+- Added Webhook idempotency and dependency auditing to CI
+
 v1.0.0 — 2026.04.16
 - Initial repo TODO backlog added
-  - Consolidates security blockers, backend hardening, orchestration work, IME support, operations, and production readiness tasks
 
 ## Purpose
 
@@ -81,6 +88,7 @@ It reflects the current agreed direction:
 ### 1.1 Replace placeholder risk engine
 - [ ] P0 Fix `src/lib/riskScorer.ts` so it no longer always allows
 - [ ] P0 Add structured risk outcomes: allow, step_up, review, deny
+- [ ] P1 Add "Shadow Mode" toggle for risk engine to allow threshold tuning against live traffic without blocking
 - [ ] P0 Expand `src/lib/risk.ts` with velocity, first-use, anomaly, and duplicate protections
 - [ ] P0 Add `src/lib/riskSignals.ts`
 - [ ] P0 Tighten `src/lib/schemas.ts` for device and risk payload contracts
@@ -95,6 +103,7 @@ It reflects the current agreed direction:
 
 ### 1.3 Webhooks and reconciliation
 - [ ] P0 Fix `src/routes/webhooks.ts` malformed signature handling so invalid signatures fail cleanly
+- [ ] P0 Add webhook event idempotency checks in `reconciliationService` to prevent double-processing
 - [ ] P0 Refactor reconciliation to separate logged, reconciled, and finalized states
 - [ ] P0 Add `src/services/reconciliationService.ts`
 - [ ] P0 Add `src/workers/reconciliationSweeper.ts`
@@ -113,12 +122,14 @@ It reflects the current agreed direction:
 
 ## Milestone 2 — Data model cleanup and structural improvements
 
-### 2.1 Structured operational metadata
+### 2.1 Structured operational metadata and Auditing
+- [ ] P0 Migrate `src/db/schema.ts` to include an immutable `audit_events` table for financial trails
 - [ ] P1 Migrate risk/device/request operational metadata to structured queryable storage where appropriate
 - [ ] P1 Add indexes for operational investigation and analytics queries
 - [ ] P1 Test metadata reads/writes and queryability
 
 ### 2.2 Payment request integrity
+- [ ] P0 Add Idempotency Key support (e.g., `X-Idempotency-Key`) for all transfer, load, and request endpoints
 - [ ] P1 Migrate `src/db/requests.ts` to enforce stronger request idempotency/uniqueness at the DB layer
 - [ ] P1 Add status/expiry indexes for payment requests
 - [ ] P1 Test duplicate request prevention and expiry behavior
@@ -134,6 +145,7 @@ It reflects the current agreed direction:
 ## Milestone 3 — IME support foundation and wallet surfaces
 
 ### 3.1 Wallet summary and preview APIs
+- [ ] P1 Add IME fail-safe/bypass mechanism to ensure standard input is always available if specialized UI fails
 - [ ] P1 Add `src/routes/walletSummary.ts`
 - [ ] P1 Add `src/services/walletSummary.ts`
 - [ ] P1 Add wallet summary endpoint for IME balance display
@@ -264,6 +276,7 @@ It reflects the current agreed direction:
 ## Milestone 10 — CI, workers, and repo hygiene
 
 ### 10.1 Real CI gates
+- [ ] P0 Add `bun audit` to CI gates for dependency vulnerability scanning
 - [ ] P0 Add real lint configuration and scripts in `package.json`
 - [ ] P0 Add real test runner configuration and scripts in `package.json`
 - [ ] P0 Expand `.github/workflows/ci.yml` beyond build-and-smoke
@@ -283,6 +296,7 @@ It reflects the current agreed direction:
 - [ ] P2 Add version/governance discipline for major repo docs and planning files
 
 ## Test Backlog
+- [ ] P0 Add `tests/idempotency.headers.test.ts`
 - [ ] P0 Add `tests/auth.kyc-access.test.ts`
 - [ ] P0 Add `tests/auth.plaid-ownership.test.ts`
 - [ ] P0 Add `tests/auth.route-guarding.test.ts`
@@ -344,12 +358,12 @@ It reflects the current agreed direction:
 2. KYC/Plaid ownership fixes
 3. Env/TLS/logging hardening
 4. Rate limiting
-5. Risk engine replacement
+5. Risk engine replacement (with Shadow Mode)
 6. Validation tightening
-7. Webhook/reconciliation hardening
-8. CI/test gates
+7. Webhook/reconciliation hardening (with Idempotency)
+8. CI/test gates (with Bun Audit)
 9. Funding-source lifecycle
-10. Wallet summary and preview APIs
+10. Wallet summary and preview APIs (with IME fail-safe)
 11. Intent schema and intent endpoints
 12. Recipient resolution
 13. Conversation artifact lifecycle
