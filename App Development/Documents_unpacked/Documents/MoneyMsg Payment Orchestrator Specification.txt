@@ -1,0 +1,571 @@
+# MoneyMsg Payment Orchestrator Specification
+
+## 1. Purpose
+
+The **MoneyMsg Payment Orchestrator** is the central backend service responsible for coordinating all financial operations within the MoneyMsg platform.
+
+It functions as the **transaction routing and state management layer** between:
+
+* MoneyMsg client applications
+* external financial infrastructure providers
+* the internal wallet ledger
+
+The orchestrator ensures that every transaction:
+
+* follows a deterministic lifecycle
+* routes through the appropriate payment rail
+* remains auditable and idempotent
+* enforces platform risk and compliance controls
+
+The orchestrator does **not directly hold funds**. Funds reside in the wallet ledger provided by Alviere.
+
+---
+
+# 2. System Role in Architecture
+
+```
+MoneyMsg Keyboard
+        │
+        │
+Companion App
+        │
+        ▼
+Payment Orchestrator
+        │
+ ┌──────┼─────────────┐
+ │      │             │
+ ▼      ▼             ▼
+Plaid  TabaPay      Dwolla
+ │      │             │
+ ▼      ▼             ▼
+Bank Accounts     Card Networks
+```
+
+External providers:
+
+* Plaid – bank authentication and account tokens
+* TabaPay – debit card funding and payouts
+* Dwolla – bank transfer rails
+* Alviere – wallet ledger and compliance
+
+---
+
+# 3. Core Responsibilities
+
+The orchestrator performs the following functions:
+
+### Transaction routing
+
+Determines which payment rail is required.
+
+Examples:
+
+| Transaction                | Route           |
+| -------------------------- | --------------- |
+| Wallet load (card)         | TabaPay         |
+| Wallet load (bank)         | Dwolla          |
+| Wallet load (instant bank) | Plaid + RTP     |
+| Wallet transfer            | internal ledger |
+| Cash out (card)            | TabaPay         |
+| Cash out (bank)            | Dwolla          |
+
+---
+
+### State management
+
+Every transaction has a defined lifecycle state.
+
+Example states:
+
+```
+CREATED
+AUTHORIZED
+PROCESSING
+SETTLED
+FAILED
+REVERSED
+EXPIRED
+```
+
+State transitions are strictly controlled.
+
+---
+
+### Idempotency control
+
+Duplicate requests must not produce duplicate transactions.
+
+Each transaction includes:
+
+```
+idempotency_key
+```
+
+Repeated requests return the original result.
+
+---
+
+### Webhook processing
+
+External providers send event notifications.
+
+Examples:
+
+* transfer completed
+* transfer failed
+* funding authorized
+
+The orchestrator processes these events and updates transaction state.
+
+---
+
+### Ledger reconciliation
+
+All external settlement events must match internal wallet balances.
+
+The orchestrator reconciles:
+
+* processor transaction IDs
+* wallet ledger updates
+* webhook events
+
+---
+
+# 4. Transaction Types
+
+The orchestrator supports the following transaction classes.
+
+---
+
+## Wallet Load – Card
+
+User funds wallet using debit card.
+
+```
+User Card
+  │
+  ▼
+TabaPay Authorization
+  │
+  ▼
+Wallet Credit
+```
+
+Provider:
+
+* TabaPay
+
+---
+
+## Wallet Load – Bank
+
+User funds wallet from bank account.
+
+```
+User Bank
+  │
+  ▼
+Dwolla Transfer
+  │
+  ▼
+Wallet Credit
+```
+
+Provider:
+
+* Dwolla
+
+Account authentication handled by:
+
+* Plaid
+
+---
+
+## Peer-to-Peer Transfer
+
+Internal wallet transfer between users.
+
+```
+Sender Wallet
+   │
+   ▼
+Funds Locked
+   │
+   ▼
+Payment Link Sent
+   │
+   ▼
+Recipient Claims
+   │
+   ▼
+Wallet-to-Wallet Transfer
+```
+
+No external rails used.
+
+---
+
+## Cash Out – Debit Card
+
+User withdraws funds instantly.
+
+```
+Wallet
+  │
+  ▼
+TabaPay Push-to-Card
+  │
+  ▼
+User Debit Card
+```
+
+Provider:
+
+* TabaPay
+
+---
+
+## Cash Out – Bank
+
+User withdraws funds to bank account.
+
+```
+Wallet
+  │
+  ▼
+Dwolla Transfer
+  │
+  ▼
+User Bank Account
+```
+
+Provider:
+
+* Dwolla
+
+---
+
+# 5. Payment Link System
+
+MoneyMsg transfers originate from conversation messages.
+
+Example link format:
+
+```
+https://moneymsg.site/pay/{transfer_id}
+```
+
+Lifecycle:
+
+```
+CREATED
+SHARED
+CLAIMED
+EXPIRED
+```
+
+Rules:
+
+* links expire after 24 hours
+* funds locked during link lifetime
+* unclaimed transfers return to sender
+
+---
+
+# 6. Fraud and Risk Controls
+
+The orchestrator enforces several safeguards.
+
+---
+
+### Balance locking
+
+When a transfer intent is created:
+
+```
+available_balance -= amount
+locked_balance += amount
+```
+
+Funds cannot be spent twice.
+
+---
+
+### Velocity limits
+
+Daily transaction limits are enforced.
+
+Example:
+
+```
+daily_send_limit = $1000
+daily_load_limit = $2000
+```
+
+---
+
+### Duplicate detection
+
+Transactions with identical characteristics are flagged.
+
+Criteria:
+
+* same sender
+* same recipient
+* same amount
+* short time interval
+
+---
+
+### Risk scoring
+
+Transactions can be scored using:
+
+* device fingerprint
+* IP reputation
+* behavioral analysis
+
+---
+
+# 7. Database Model
+
+Primary database: PostgreSQL.
+
+---
+
+## users
+
+```
+id
+email
+phone
+kyc_status
+wallet_id
+created_at
+```
+
+---
+
+## wallets
+
+```
+id
+user_id
+balance
+locked_balance
+currency
+created_at
+```
+
+---
+
+## transactions
+
+```
+id
+user_id
+type
+amount
+currency
+status
+provider
+provider_transaction_id
+idempotency_key
+created_at
+updated_at
+```
+
+---
+
+## payment_links
+
+```
+id
+sender_id
+amount
+status
+expires_at
+created_at
+```
+
+---
+
+## webhook_events
+
+```
+id
+provider
+event_type
+payload
+processed
+created_at
+```
+
+---
+
+# 8. API Endpoints
+
+The orchestrator exposes REST endpoints.
+
+---
+
+## Create Wallet Load
+
+```
+POST /payments/load
+```
+
+Parameters:
+
+```
+amount
+funding_source
+method (card | bank)
+```
+
+---
+
+## Create Payment Link
+
+```
+POST /payments/link
+```
+
+Parameters:
+
+```
+amount
+recipient_identifier
+```
+
+---
+
+## Claim Payment
+
+```
+POST /payments/claim
+```
+
+Parameters:
+
+```
+transfer_id
+```
+
+---
+
+## Cash Out
+
+```
+POST /payments/cashout
+```
+
+Parameters:
+
+```
+amount
+destination
+method (card | bank)
+```
+
+---
+
+## Transaction History
+
+```
+GET /transactions
+```
+
+---
+
+# 9. Webhook Handlers
+
+External providers notify the orchestrator via webhooks.
+
+---
+
+## Card Transaction Events
+
+Source:
+
+* TabaPay
+
+Example:
+
+```
+card_authorized
+card_settled
+card_failed
+```
+
+---
+
+## Bank Transfer Events
+
+Source:
+
+* Dwolla
+
+Example:
+
+```
+transfer_completed
+transfer_failed
+transfer_reversed
+```
+
+---
+
+## Account Linking Events
+
+Source:
+
+* Plaid
+
+Example:
+
+```
+item.created
+item.error
+```
+
+---
+
+# 10. Security Controls
+
+Security practices include:
+
+* TLS encrypted communication
+* webhook signature verification
+* API key authentication
+* role-based admin access
+
+All transactions are logged for audit and reconciliation.
+
+---
+
+# 11. Reliability Requirements
+
+System targets:
+
+| Metric                     | Target         |
+| -------------------------- | -------------- |
+| Uptime                     | 99.9%          |
+| Payment processing latency | < 2 seconds    |
+| Webhook processing         | < 5 seconds    |
+| Transaction durability     | ACID compliant |
+
+---
+
+# 12. Future Expansion
+
+The orchestrator is designed to support additional rails.
+
+Possible additions:
+
+* FedNow
+* RTP network
+* international transfers
+* stablecoin settlement
+
+---

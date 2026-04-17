@@ -1,0 +1,274 @@
+# 1. User Interaction Model
+
+Flow:
+
+1. User opens an **RCS chat** in a messaging client (e.g., Google Messages).
+2. User switches to your **custom keyboard extension**.
+3. Keyboard shows:
+   * amount entry
+   * recipient confirmation
+4. User taps **Send $X**.
+5. Keyboard calls your backend API.
+6. Backend executes transfer.
+7. RCS message containing payment confirmation link or receipt is inserted.
+
+Example message payload:
+
+```
+Chris sent you $20
+
+Accept: https://pay.example/tx/834923
+```
+
+---
+
+# 2. High-Level System Architecture
+
+```
+RCS Messaging App
+      │
+Third-Party Keyboard (UI layer)
+      │
+Payment API Gateway
+      │
+Wallet Ledger
+      │
+Payment Rails
+```
+
+
+# 3. Recommended Minimal Stack
+
+For **lowest complexity and cost**:
+
+| Layer                 | Provider                              |
+| --------------------- | ------------------------------------- |
+| Messaging             | RCS (carrier / Google Jibe)           |
+| Keyboard              | native Android/iOS keyboard extension |
+| Wallet ledger         | your backend                          |
+| Bank transfers        | TBD|
+| Instant card cash-out | TBD                               |
+
+Optional:
+
+* orchestration layer → TBD
+* full BaaS → TBD
+
+---
+
+# 4. Payment Flow
+
+### Send Money
+
+```
+User A keyboard
+      │
+API call
+      │
+Ledger debit
+      │
+Ledger credit
+      │
+RCS message inserted
+```
+
+Cost:
+
+≈ $0 per transfer (internal ledger)
+
+---
+
+### Cash-Out to Bank
+
+```
+Wallet
+   │
+TBD ACH / RTP
+   │
+User bank
+```
+
+Typical cost:
+
+```
+$0.01 – $1
+depending on rail
+```
+
+---
+
+### Instant Debit Card Cash-Out
+
+```
+Wallet
+   │
+Provider TBD
+   │
+Visa Direct / Mastercard Send
+   │
+User debit card
+```
+
+Typical cost:
+
+```
+~0.5% + $0.20
+```
+
+---
+
+# 5. Keyboard Architecture
+
+Keyboard extension responsibilities:
+
+```
+UI
+amount input
+recipient detection
+token authentication
+API request
+message insertion
+```
+
+Critical constraint:
+
+Mobile OS keyboards **cannot store sensitive financial data**.
+
+Therefore:
+
+```
+keyboard → short-lived auth token
+backend → performs transaction
+```
+
+---
+
+# 6. Identity Resolution
+
+Recipient detection options:
+
+| Method       | Mechanism                 |
+| ------------ | ------------------------- |
+| Phone number | lookup wallet account     |
+| Deep link    | payment acceptance page   |
+| Contact hash | privacy-preserving lookup |
+
+Typical implementation:
+
+```
+phone_number → hashed
+hash → user_id
+user_id → wallet
+```
+
+---
+
+# 7. Compliance Scope (P2P Only)
+
+If limited strictly to **personal transfers**, regulatory exposure is lower.
+
+Required:
+
+* KYC identity verification
+* AML monitoring
+* sanctions screening
+
+Handled by:
+
+* TBD
+
+---
+
+# 8. Key Advantage of the Keyboard Model
+
+Most fintech apps require:
+
+```
+open app → choose contact → send
+```
+
+Keyboard model:
+
+```
+conversation → tap keyboard → send
+```
+
+This creates **near-zero friction payments inside messaging**.
+
+It is conceptually similar to integrations attempted by:
+
+* Venmo chat payments
+* Cash App social payments.
+
+But the **RCS + keyboard approach avoids needing a full messaging platform**.
+
+---
+
+# 9. Major Technical Risks
+
+1. **iOS keyboard limitations**
+
+   * restricted network calls
+   * limited background processing
+
+2. **RCS fragmentation**
+
+   * depends on carrier and client
+
+3. **fraud vectors**
+
+   * contact spoofing
+   * social engineering
+
+Mitigation typically requires:
+
+```
+transaction confirmation screen
+biometric authentication
+velocity limits
+```
+
+---
+
+# 10. Simplest Practical Implementation
+
+If minimizing infrastructure:
+
+```
+Keyboard UI
+   │
+Backend API
+   │
+Ledger DB
+   │
+TBD (bank rails)
+   │
+TBD (card rails)
+```
+
+This supports:
+
+* wallet funding
+* wallet-to-wallet transfers
+* instant debit card cash-out
+* bank withdrawal
+
+Revenue Model:
+The revenue model assumes an internal ledger handles "Wallet-to-Wallet" movements at zero cost, while external "Instant" or "Credit" rails incur a markup.
+
+1. Debit-Initiated Funding or P2P (Debit/Bank Source)
+Logic: Principal + 1.75% + $0.50
+Application: Sender is charged the total; Recipient receives the clean principal.
+2. Credit-Initiated Funding or P2P
+Logic: Principal + 5% + $0.75
+Application: Used for instant liquidity when a user wants to send money using a credit line rather than available cash.
+3. Instant transfer from wallet to debit card
+Logic: Principal - (1.75% + $0.50)
+Application: Used for instant cash out from user wallet to debit card, recipient receives principal less fees.
+
+The User Flow:
+Input: User enters "$50" in the payment keyboard.
+Selection: User toggles between "Standard (Free)" and "Instant (+ $1.38)".
+Visual Confirmation: The "Send" button updates to show: "Pay $51.38".
+Execution: On biometric confirmation, the system triggers the external debit for the total amount.
+Ledger Split: The internal ledger simultaneously credits the recipient's wallet $50.00 and the platform's revenue account $1.38.

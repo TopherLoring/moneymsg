@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        env:
+          DATABASE_URL: postgres://user:pass@localhost:5432/db
+          ALVIERE_API_KEY: dummy
+          ALVIERE_API_URL: https://api.alviere.com
+          PLAID_CLIENT_ID: dummy
+          PLAID_SECRET: dummy
+          PLAID_ENV_URL: https://sandbox.plaid.com
+          TABAPAY_API_KEY: dummy
+          TABAPAY_API_URL: https://api.tabapay.com
+          TABAPAY_WEBHOOK_SECRET: dummy
+          DWOLLA_APP_KEY: dummy
+          DWOLLA_APP_SECRET: dummy
+          DWOLLA_ENV_URL: https://api.dwolla.com
+          DWOLLA_WEBHOOK_SECRET: dummy
+          DWOLLA_DEST_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
+          DWOLLA_SOURCE_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
+          API_KEY: test
+          WEBHOOK_SHARED_SECRET: test
+          WEBHOOK_MAX_SKEW_SECONDS: 300
+        run: npm run build
+
+      - name: Smoke /health
+        env:
+          DATABASE_URL: postgres://user:pass@localhost:5432/db
+          ALVIERE_API_KEY: dummy
+          ALVIERE_API_URL: https://api.alviere.com
+          PLAID_CLIENT_ID: dummy
+          PLAID_SECRET: dummy
+          PLAID_ENV_URL: https://sandbox.plaid.com
+          TABAPAY_API_KEY: dummy
+          TABAPAY_API_URL: https://api.tabapay.com
+          TABAPAY_WEBHOOK_SECRET: dummy
+          DWOLLA_APP_KEY: dummy
+          DWOLLA_APP_SECRET: dummy
+          DWOLLA_ENV_URL: https://api.dwolla.com
+          DWOLLA_WEBHOOK_SECRET: dummy
+          DWOLLA_DEST_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
+          DWOLLA_SOURCE_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
+          API_KEY: test
+          WEBHOOK_SHARED_SECRET: test
+          WEBHOOK_MAX_SKEW_SECONDS: 300
+          PORT: 8080
+        run: |
+          npm run smoke

@@ -1,0 +1,376 @@
+# MoneyMsg Partner Application Package
+
+Prepared by
+**TopherLoring Investments**
+
+Project
+**MoneyMsg**
+
+Domain
+moneymsg.site
+
+---
+
+# 1. Executive Overview
+
+MoneyMsg is an Android-native conversational payments platform.
+
+The product operates as a **system keyboard using Android's InputMethodService API**, enabling users to initiate peer-to-peer payments directly within any messaging conversation.
+
+Supported messaging environments include:
+
+* SMS
+* RCS
+* WhatsApp
+* Signal
+* Telegram
+
+The experience replicates the functionality of Apple Cash within iMessage for the Android ecosystem.
+
+Users can:
+
+* load funds into a wallet
+* send money within a conversation
+* receive payments via a claim link
+* withdraw funds to a bank account or debit card
+
+The architecture uses a **closed-loop wallet model** to minimize network costs and reduce fraud exposure.
+
+---
+
+# 2. Company Information
+
+Legal Entity
+TopherLoring Investments
+
+Business Model
+Financial technology platform
+
+Primary Product
+MoneyMsg
+
+Business Activity
+Peer-to-peer payments within messaging conversations.
+
+Revenue Model
+
+MoneyMsg generates revenue only on **external liquidity events**.
+
+| Event                     | Fee           |
+| ------------------------- | ------------- |
+| Wallet Load               | 1.75% + $0.50 |
+| Cash Out                  | 1.75% + $0.50 |
+| Wallet-to-Wallet Transfer | $0            |
+
+Internal transfers occur within the wallet ledger and incur no network cost.
+
+---
+
+# 3. Product Description
+
+MoneyMsg solves a UX problem in mobile payments.
+
+Most P2P systems require users to:
+
+1. leave a conversation
+2. open a payment app
+3. complete a transaction
+4. return to messaging
+
+MoneyMsg eliminates that context switch.
+
+Payments are initiated directly inside the conversation through the system keyboard.
+
+Example interaction:
+
+```
+User A typing in chat
+↓
+opens MoneyMsg keyboard panel
+↓
+enters $20
+↓
+keyboard injects payment link
+↓
+recipient taps link
+↓
+payment claimed
+```
+
+---
+
+# 4. Core Product Architecture
+
+The system consists of three layers.
+
+### Client Layer
+
+| Component     | Technology                        |
+| ------------- | --------------------------------- |
+| Keyboard      | Android Kotlin InputMethodService |
+| Companion App | React Native                      |
+
+The keyboard handles payment initiation.
+
+The companion app handles onboarding and payment claims.
+
+---
+
+### Backend Layer
+
+| Component | Technology       |
+| --------- | ---------------- |
+| Runtime   | Node.js          |
+| Framework | Fastify          |
+| Language  | TypeScript       |
+| ORM       | Drizzle ORM      |
+| Database  | PostgreSQL       |
+| Hosting   | Google Cloud Run |
+
+---
+
+### Financial Infrastructure Layer
+
+| Provider | Role                      |
+| -------- | ------------------------- |
+| Alviere  | Wallet ledger, compliance |
+| Plaid    | Account authentication    |
+| TabaPay  | Debit card rails          |
+| Dwolla   | Bank rails                |
+
+---
+
+# 5. Transaction Flows
+
+## Wallet Load
+
+### Card Load
+
+User debit card
+→ card processor
+→ wallet credit
+
+Purpose: fund wallet balance.
+
+---
+
+### Bank Load
+
+User bank account
+→ bank transfer network
+→ wallet credit
+
+Purpose: fund wallet balance.
+
+---
+
+## Peer-to-Peer Transfer
+
+Sender wallet
+→ locked transfer intent
+→ payment link shared in chat
+→ recipient claims payment
+→ wallet-to-wallet transfer executed.
+
+---
+
+## Cash Out
+
+Wallet funds
+→ external debit card or bank account.
+
+---
+
+# 6. Compliance Model
+
+The platform operates using a **Banking-as-a-Service architecture**.
+
+Compliance responsibilities are distributed as follows:
+
+| Function       | Provider |
+| -------------- | -------- |
+| KYC / AML      | Alviere  |
+| OFAC screening | Alviere  |
+| Wallet ledger  | Alviere  |
+| Card rails     | TabaPay  |
+| Bank rails     | Dwolla   |
+
+The platform does not store sensitive identity data.
+
+Sensitive data handled by providers:
+
+* SSN
+* card numbers
+* bank credentials
+
+---
+
+# 7. Data Handling Policy
+
+Sensitive financial data is never stored locally.
+
+The platform stores only tokenized references.
+
+Stored fields include:
+
+| Data             | Description           |
+| ---------------- | --------------------- |
+| processor_token  | payment routing token |
+| institution_name | bank name             |
+| mask             | last four digits      |
+
+Data protection measures:
+
+* TLS encryption
+* secure token storage
+* restricted database access
+* audit logging
+
+---
+
+# 8. Fraud & Risk Controls
+
+The system implements multiple safeguards.
+
+### Identity Verification
+
+User onboarding requires KYC verification.
+
+---
+
+### Balance Locking
+
+Funds are deducted when a transfer intent is created.
+
+This prevents double spending.
+
+---
+
+### Intent Expiration
+
+Payment links expire after 24 hours.
+
+Unclaimed funds automatically return to the sender.
+
+---
+
+### Transaction Monitoring
+
+The backend logs all financial operations including:
+
+* loads
+* transfers
+* withdrawals
+
+Suspicious activity can trigger account freezing.
+
+---
+
+# 9. Operational Controls
+
+The platform includes administrative capabilities.
+
+These include:
+
+| Capability        | Purpose               |
+| ----------------- | --------------------- |
+| account freeze    | fraud response        |
+| transaction audit | compliance            |
+| refund capability | error handling        |
+| monitoring alerts | operational awareness |
+
+---
+
+# 10. Technical Integration Summary
+
+External providers interact with the backend via REST APIs.
+
+Key integrations include:
+
+| Integration       | Function                   |
+| ----------------- | -------------------------- |
+| Plaid Link        | account authentication     |
+| Processor Tokens  | payment routing            |
+| Card transactions | card funding/payout        |
+| Bank transfers    | RTP/FedNow transfers       |
+| Webhooks          | transaction status updates |
+
+All APIs use HTTPS with authenticated requests.
+
+---
+
+# 11. Security Practices
+
+Security measures include:
+
+* encrypted communication
+* API authentication
+* webhook signature verification
+* idempotent transaction processing
+
+The system follows secure coding practices and least-privilege access controls.
+
+---
+
+# 12. Product Roadmap
+
+### Phase 1
+
+Core wallet and P2P functionality.
+
+Features:
+
+* onboarding
+* wallet load
+* P2P payments
+* cash out
+
+---
+
+### Phase 2
+
+Enhanced user features.
+
+Planned capabilities:
+
+* transaction history
+* notifications
+* balance limits
+
+---
+
+### Phase 3
+
+Extended financial services.
+
+Possible features:
+
+* virtual card issuance
+* digital wallet integration
+
+---
+
+# 13. Contact Information
+
+Organization
+TopherLoring Investments
+
+Product
+MoneyMsg
+
+Domain
+moneymsg.site
+
+---
+
+# 14. Attachments
+
+The following documents can be included when submitting the package:
+
+1. Product architecture diagram
+2. Transaction flow diagrams
+3. Privacy policy
+4. Terms of service
+5. Security practices summary
+
+---
