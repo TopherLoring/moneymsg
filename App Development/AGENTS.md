@@ -233,6 +233,7 @@ moneymsg/
 │       └── riskSignals.ts           # to be added
 ├── android/
 ├── companion/
+├── CHANGELOG.md
 ├── Dockerfile
 ├── drizzle.config.ts
 ├── NEWS.md
@@ -270,7 +271,8 @@ The current repo uses an intent-and-claim model. That execution core may remain 
 ## Code Standards
 
 ### Mandatory
-- **Production-ready, complete code only.** No stubs, no `TODO`, no placeholder functions.
+- **Production-ready, complete code only.** No stubs, no placeholder functions.
+- **Maintain root directory CHANELOG.md, NEWS.md, RELEASES.md, and TODO.md files
 - **TypeScript strict mode.** No `any` except at external API boundaries, narrowed immediately.
 - **All provider calls in `src/services/`.** Routes never call provider APIs directly.
 - **Raw `fetch` for provider HTTP calls.** Do not add provider SDKs unless explicitly approved.
