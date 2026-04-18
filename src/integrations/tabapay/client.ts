@@ -1,12 +1,11 @@
 import { env } from "../../config/env";
 import { ProviderError, AppError } from "../../shared/errors";
-import { AppError, ProviderError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
 import { getCorrelationMeta } from "../../shared/requestContext";
 
 function tabapayHeaders(): Record<string, string> {
   if (!env.TABAPAY_API_KEY) {
-    throw new ProviderError({ provider: "tabapay", message: "TabaPay not configured", providerStatus: 503 });
+    throw new AppError("TabaPay not configured", "PROVIDER_ERROR", 503);
   }
   const correlationId = getCorrelationMeta().requestId;
   return {
@@ -18,7 +17,7 @@ function tabapayHeaders(): Record<string, string> {
 
 function tabapayBase(): string {
   if (!env.TABAPAY_API_URL) {
-    throw new ProviderError({ provider: "tabapay", message: "TabaPay not configured", providerStatus: 503 });
+    throw new AppError("TabaPay not configured", "PROVIDER_ERROR", 503);
   }
   return env.TABAPAY_API_URL;
 }

@@ -38,12 +38,6 @@ for (const file of extraFiles) {
 for (const file of files) {
   if (!shouldCheck(file)) continue;
   const relativePath = relative(projectRoot, file);
-
-  // Skip generated or third-party JSON files that may not follow trailing newline conventions
-  if (relativePath.endsWith("google-services.json")) {
-    continue;
-  }
-
   const source = readFileSync(file, "utf8");
 
   if (source.includes("\t")) {
