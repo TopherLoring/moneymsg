@@ -23,7 +23,7 @@ function buildSslConfig(): false | { rejectUnauthorized: boolean; ca?: string } 
 const pool = new Pool({
   connectionString: env.DATABASE_URL,
   max: 10,
-  ssl: env.DB_SSL_MODE === "disable" ? false : buildSslConfig(),
+  ssl: buildSslConfig(),
 });
 
 export const db = drizzle(pool);
