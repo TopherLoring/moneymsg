@@ -4,14 +4,20 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.3.0 |
-| Updated | 2026.04.18 |
+| Version | v1.4.0 |
+| Updated | 2026.04.18 03:56 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.4.0 — 2026.04.18 03:56 AM CT
+
+- Added release entry for the version-tracking timestamp standard update
+- Added the missing MX repository and CI preflight release entry
+- Synced release documentation to the repository-wide U.S. AM/PM timestamp format
 
 ### v1.3.0 — 2026.04.18
 
@@ -41,6 +47,63 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 03:56 AM CT — Version Tracking Timestamp Standard Pass
+
+**Type:** Internal repository standards update  
+**Status:** In Progress
+
+#### Summary
+
+Updated the repository version-tracking requirements so governed documents must include both date and time using a U.S. 12-hour clock with AM/PM and timezone.
+
+#### Included in this pass
+
+- Updated `docs/architecture/REPOSITORY-STANDARDS.md`
+- Updated `docs/business/BUSINESS-DOCUMENTS.md`
+- Updated `CHANGELOG.md`
+- Updated this file to reflect the new timestamp rule
+
+#### Notes
+
+- The standard timestamp format is `YYYY.MM.DD hh:mm AM/PM TZ`.
+- Existing historical entries may remain date-only until they are actively revised.
+
+#### Follow-up still required
+
+- Apply the timestamp format to future governed-document updates consistently
+- Normalize older high-value tracking docs when they are next touched
+
+### 2026.04.18 — MX Repository and CI Preflight Pass
+
+**Type:** Internal repository tooling and CI update  
+**Status:** In Progress
+
+#### Summary
+
+Completed the Bun-first MX repository and CI preflight pass for the backend package and canonical task system.
+
+#### Included in this pass
+
+- Added `App Development/bun.lock`
+- Added `App Development/tsconfig.typecheck.json`
+- Added `App Development/scripts/lint.ts`
+- Added `App Development/scripts/smoke.ts`
+- Added `App Development/tests/mx-preflight.test.ts`
+- Updated `TODO.md` with checkbox-based task rows and completed MX task evidence
+- Updated `.gitignore` and backend package scripts for Bun-first execution
+- Updated backend CI workflow to Bun-first preflight enforcement
+- Removed `App Development/package-lock.json`
+
+#### Notes
+
+- Bun is now the preferred package manager and CI runtime for the backend package.
+- The MX lane now enforces install, lint, typecheck, tests, build, migration validation, and smoke.
+
+#### Follow-up still required
+
+- Keep the Bun-first preflight lane green as new work lands
+- Continue from the next P0 blocker work already recorded in root `TODO.md`
 
 ### 2026.04.18 — Canonical TODO Unification Pass
 
