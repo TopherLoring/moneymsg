@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.1.0 |
+| Version | v1.2.0 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -12,6 +12,11 @@
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.2.0 — 2026.04.18
+
+- Added release entry for the repository README and unofficial palette pass
+- Aligned release documentation with the current README and unofficial color reference
 
 ### v1.1.0 — 2026.04.18
 
@@ -30,6 +35,33 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 — Repository README and Unofficial Palette Pass
+
+**Type:** Internal repository documentation update  
+**Status:** In Progress
+
+#### Summary
+
+Added the repository README as the primary repo entry point and set the current unofficial repository-facing palette to black, white, and `#00FF88`.
+
+#### Included in this pass
+
+- Added `README.md`
+- Documented the current MoneyMsg product model across keyboard, companion app, and backend surfaces
+- Added honest runtime and setup guidance for the current backend package under `App Development/`
+- Linked canonical task, standards, release, and business-document entry points
+- Recorded the unofficial repository-facing palette as black, white, and `#00FF88`
+
+#### Notes
+
+- The README is repo-facing and operational, not marketing-facing.
+- The unofficial color system is recorded for repository documentation only and remains unofficial until a formal brand system is locked.
+
+#### Follow-up still required
+
+- Align any future branded documentation to the same unofficial palette until replaced
+- Continue repo cleanup so the physical source layout catches up with the documented target structure
 
 ### 2026.04.18 — Canonical Backlog Import Pass
 
