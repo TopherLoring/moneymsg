@@ -7,21 +7,23 @@ import { toErrorResponse } from "../../../shared/errors";
 import { env } from "../../../config/env";
 import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
 import { reconcileWebhookEvent, finalizeWebhookEvent } from "../../reconciliation/service";
+import { requireWebhookSecret } from "../../../shared/auth";
 
 type SignatureConfig = {
   header: string;
   secret: string;
   timestampHeader?: string;
+  encoding?: crypto.BinaryToTextEncoding;
 };
 
-function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
+function verifyHmac(body: string, signature: string | undefined, secret: string, encoding?: crypto.BinaryToTextEncoding, timestamp?: string): boolean {
   if (!signature) return false;
   const hmac = crypto.createHmac("sha256", secret);
   if (timestamp) {
     hmac.update(timestamp);
   }
   hmac.update(body, "utf8");
-  const digest = hmac.digest("hex");
+  const digest = hmac.digest(encoding || "hex");
 
   const digestBuf = Buffer.from(digest, "utf8");
   const sigBuf = Buffer.from(signature, "utf8");
@@ -36,9 +38,13 @@ export async function webhookRoutes(app: FastifyInstance) {
   });
 
   app.addHook("onRequest", async (request, reply) => {
-    const header = request.headers["x-webhook-secret"] as string | undefined;
-    if (!header || header !== env.WEBHOOK_SHARED_SECRET) {
-      return reply.status(401).send({ error: "Unauthorized webhook", code: "UNAUTHORIZED" });
+    try {
+      requireWebhookSecret(request);
+    } catch (err: any) {
+      if (err.code === "UNAUTHORIZED") {
+         return reply.status(err.status).send({ error: err.message, code: err.code });
+      }
+      throw err;
     }
   });
 
@@ -69,7 +75,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
-        const ok = verifyHmac(raw || "", signature, config.secret, config.encoding);
+        const ok = verifyHmac(raw || "", signature, config.secret, config.encoding, timestamp);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         const parsed = JSON.parse(raw || "{}");
@@ -160,4 +166,3 @@ function normalizeEvent(
   }
   return null;
 }
-

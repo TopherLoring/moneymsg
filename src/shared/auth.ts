@@ -7,6 +7,7 @@
 
 import { FastifyRequest } from "fastify";
 import { AppError } from "./errors";
+import { env } from "../config/env";
 
 export { requireAuth, requireRole, assertOwnershipOrElevated } from "./authz";
 
@@ -15,7 +16,7 @@ export { requireAuth, requireRole, assertOwnershipOrElevated } from "./authz";
  * NOT for route-level user auth — use requireAuth instead.
  */
 export function requireWebhookSecret(request: FastifyRequest): void {
-  const shared = process.env.WEBHOOK_SHARED_SECRET;
+  const shared = env.WEBHOOK_SHARED_SECRET;
   if (!shared) return;
   const header = request.headers["x-webhook-secret"] as string | undefined;
   if (!header || header !== shared) {

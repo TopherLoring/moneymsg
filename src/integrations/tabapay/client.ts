@@ -1,5 +1,5 @@
 import { env } from "../../config/env";
-import { ProviderError } from "../../shared/errors";
+import { ProviderError, AppError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
 import { getCorrelationMeta } from "../../shared/requestContext";
 
