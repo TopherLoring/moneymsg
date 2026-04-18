@@ -31,7 +31,7 @@ type CardPullRequest = {
   description?: string;
 };
 
-export type CardPullResponse = {
+type CardPullResponse = {
   id: string;
   status: string;
 };
