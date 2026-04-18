@@ -17,7 +17,7 @@
     "dev:request-sweeper": "bun --hot src/jobs/requestSweeper.ts",
     "start:request-sweeper": "bun dist/jobs/requestSweeper.js",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate:pg",
+    "db:migrate": "drizzle-kit migrate",
     "smoke": "bun run scripts/smoke.ts",
     "ci": "bun run lint && bun run typecheck && bun test && bun run build && bun run db:check && bun run smoke",
     "db:check": "bun x drizzle-kit check --config drizzle.config.ts"
@@ -48,7 +48,9 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.18.0",
+    "bun-types": "^1.3.12",
     "drizzle-kit": "^0.31.9",
+    "drizzle-kit": "^0.31.10",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
