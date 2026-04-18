@@ -52,4 +52,4 @@ async function sweepExpiredIntents() {
   }
 }
 
-if (env.NODE_ENV !== "test") { sweepExpiredIntents();  }
+if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepExpiredIntents();  }

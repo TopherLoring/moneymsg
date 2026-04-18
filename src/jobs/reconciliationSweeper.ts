@@ -45,4 +45,4 @@ async function sweepStaleWebhookEvents() {
   }
 }
 
-if (env.NODE_ENV !== "test") { sweepStaleWebhookEvents();  }
+if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepStaleWebhookEvents();  }

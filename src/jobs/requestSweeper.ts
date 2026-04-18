@@ -24,4 +24,4 @@ async function sweepExpiredRequests() {
   }
 }
 
-if (env.NODE_ENV !== "test") { sweepExpiredRequests();  }
+if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepExpiredRequests();  }
