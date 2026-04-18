@@ -31,6 +31,10 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
+  app.removeContentTypeParser("application/json");
+  app.addContentTypeParser("application/json", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
+    done(null, body);
+  });
   app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
