@@ -7,6 +7,7 @@ import { getCorrelationMeta } from "../../shared/requestContext";
 
 function tabapayHeaders(): Record<string, string> {
   if (!env.TABAPAY_API_KEY) {
+    throw new ProviderError({ provider: "tabapay", message: "TabaPay not configured", providerStatus: 503 });
     throw new AppError("TabaPay not configured", "PROVIDER_ERROR", 503);
     throw new ProviderError({provider: "tabapay", message: "TabaPay not configured", providerStatus: 503});
   }
@@ -20,6 +21,7 @@ function tabapayHeaders(): Record<string, string> {
 
 function tabapayBase(): string {
   if (!env.TABAPAY_API_URL) {
+    throw new ProviderError({ provider: "tabapay", message: "TabaPay not configured", providerStatus: 503 });
     throw new AppError("TabaPay not configured", "PROVIDER_ERROR", 503);
     throw new ProviderError({provider: "tabapay", message: "TabaPay not configured", providerStatus: 503});
   }

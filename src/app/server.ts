@@ -11,6 +11,11 @@ import { requestRoutes } from "../modules/request/http/routes";
 import { statusRoutes } from "../modules/status/http/routes";
 import { port, env } from "../config/env";
 import { pool } from "../infrastructure/db";
+if (process.env.DISABLE_SWEEPERS !== "true") {
+  require("../jobs/intentSweeper");
+  require("../jobs/requestSweeper");
+  require("../jobs/reconciliationSweeper");
+}
 import "../jobs/intentSweeper";
 import "../jobs/requestSweeper";
 import "../jobs/reconciliationSweeper";

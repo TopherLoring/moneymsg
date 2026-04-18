@@ -13,17 +13,22 @@ type SignatureConfig = {
   secret: string;
   timestampHeader?: string;
   encoding?: "base64" | "hex";
-  encoding?: crypto.BinaryToTextEncoding;
 };
 
-function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
+function verifyHmac(
+  body: string,
+  signature: string | undefined,
+  secret: string,
+  timestamp?: string,
+  encoding: crypto.BinaryToTextEncoding = "hex",
+): boolean {
   if (!signature) return false;
   const hmac = crypto.createHmac("sha256", secret);
   if (timestamp) {
     hmac.update(timestamp);
   }
   hmac.update(body, "utf8");
-  const digest = hmac.digest("hex");
+  const digest = hmac.digest(encoding);
 
   const digestBuf = Buffer.from(digest, "utf8");
   const sigBuf = Buffer.from(signature, "utf8");
@@ -33,6 +38,7 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
+  app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (_req, body, done) => {
   app.removeContentTypeParser("application/json");
   app.addContentTypeParser("application/json", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
@@ -78,6 +84,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp, config.encoding);
         const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
         const ok = verifyHmac(raw || "", signature, config.secret, undefined);
 
