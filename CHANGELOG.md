@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.1.0 |
+| Version | v1.2.0 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -12,6 +12,12 @@
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.2.0 — 2026.04.18
+
+- Recorded repository README creation and follow-up palette update
+- Logged the new repo entry point, setup guidance, canonical documentation map, and unofficial brand palette note
+- Kept repo-level change history aligned with the current README
 
 ### v1.1.0 — 2026.04.18
 
@@ -25,6 +31,26 @@
 - Added repository-level changelog for MoneyMsg
 - Established a versioned documentation anchor for repo governance, releases, tasks, business documents, and archive management
 - Recorded the first standards-focused refactor pass for AI-agent-friendly repository organization
+
+## 2026.04.18 — Repository README Creation and Palette Pass
+
+### Added
+- `README.md`
+
+### Updated
+- `README.md`
+
+### Defined
+- repository entry-point narrative for MoneyMsg
+- current runtime and local setup guidance
+- canonical documentation and backlog entry points
+- product model summary for keyboard, companion app, and backend surfaces
+- unofficial repository-facing palette: black, white, and `#00F8F8`
+
+### Notes
+- The README is intentionally repo-facing, not marketing-facing.
+- Setup guidance reflects the current backend package location under `App Development/` and the current Bun/Node runtime reality.
+- The current color system is explicitly marked unofficial until a formal brand system is locked.
 
 ## 2026.04.18 — Canonical Backlog Import Pass
 
