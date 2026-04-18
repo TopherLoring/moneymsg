@@ -34,7 +34,7 @@ async function sweepStaleWebhookEvents() {
       if (event.reconciliationState === "reconciled") {
         await finalizeWebhookEvent(event.id);
       }
-    } catch (err: any) {
+    } catch (err) {
       logger.error({ err, eventId: event.id }, "reconciliation_sweeper_error");
       await db
         .update(webhookEvents)

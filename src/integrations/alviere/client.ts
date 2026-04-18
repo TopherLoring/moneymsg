@@ -1,7 +1,7 @@
 import { env } from "../../config/env";
 import { ProviderError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
-import { getCorrelationMeta } from "../../shared/requestContext";
+import { getRequestContext } from "../../shared/requestContext";
 
 type TransferPayload = {
   fromAccountId: string;
@@ -12,7 +12,7 @@ type TransferPayload = {
 };
 
 async function alviereFetch<T>(path: string, body: unknown): Promise<T> {
-  const correlationId = getCorrelationMeta().requestId;
+  const correlationId = getRequestContext()?.requestId;
   const res = await fetch(`${env.ALVIERE_API_URL}${path}`, {
     method: "POST",
     headers: {
@@ -30,7 +30,7 @@ async function alviereFetch<T>(path: string, body: unknown): Promise<T> {
       provider: "alviere",
       message: data?.["message"] || "API error",
       providerStatus: res.status,
-      correlationId: getCorrelationMeta().requestId,
+      correlationId: getRequestContext()?.requestId,
     });
   }
 
