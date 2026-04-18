@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.2.0 |
+| Version | v1.3.0 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -12,6 +12,12 @@
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.3.0 — 2026.04.18
+
+- Added release entry for the canonical TODO unification pass
+- Realigned release documentation around root `TODO.md` as the single live execution authority
+- Recorded demotion of `docs/tasks/*` authority to supporting documentation
 
 ### v1.2.0 — 2026.04.18
 
@@ -35,6 +41,36 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 — Canonical TODO Unification Pass
+
+**Type:** Internal repository backlog and governance update  
+**Status:** In Progress
+
+#### Summary
+
+Collapsed live task authority into root `TODO.md` so plan, dependency order, status, acceptance criteria, and progress evidence now live in one governed file.
+
+#### Included in this pass
+
+- Replaced root `TODO.md` with the canonical plan-and-progress register
+- Reframed `docs/tasks/TODO.md` as a support index only
+- Reframed `docs/tasks/00_MASTER_BACKLOG.md` as a reference overview only
+- Archived `App Development/TODO.md` as a superseded backend-local backlog
+- Removed duplicate `docs/backlog/00_MASTER_BACKLOG.md`
+- Updated `README.md`, `CHANGELOG.md`, and this file to reflect the new authority model
+
+#### Notes
+
+- The repository had too many backlog authorities competing with each other.
+- This pass keeps the milestone task-pack files, but strips them of independent status ownership.
+- Future progress updates should land in root `TODO.md` first.
+
+#### Follow-up still required
+
+- Keep milestone support packs aligned with the canonical root register
+- Continue repo hygiene work that removes or archives redundant documentation payloads
+- Close the still-open P0 implementation work already listed in root `TODO.md`
 
 ### 2026.04.18 — Repository README and Unofficial Palette Pass
 
@@ -132,4 +168,4 @@ Each future entry should include:
 
 ## Scope Rule
 
-Use this file for release history and project/news communication. Use `CHANGELOG.md` for file and repo change history. Use `docs/tasks/TODO.md` for navigation/governance work. Use `docs/tasks/00_MASTER_BACKLOG.md` and the milestone backlog files for execution work.
+Use this file for release history and project/news communication. Use `CHANGELOG.md` for file and repo change history. Use root `TODO.md` for execution planning and live progress. Use `docs/tasks/*` only for supporting implementation detail.
