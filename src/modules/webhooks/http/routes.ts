@@ -12,6 +12,8 @@ type SignatureConfig = {
   header: string;
   secret: string;
   timestampHeader?: string;
+  encoding?: "base64" | "hex";
+  encoding?: crypto.BinaryToTextEncoding;
 };
 
 function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
