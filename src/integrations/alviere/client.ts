@@ -1,21 +1,24 @@
 import { env } from "../../config/env";
 import { AppError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
+import { getCorrelationMeta } from "../../shared/requestContext";
 
 type TransferPayload = {
   fromAccountId: string;
   toAccountId: string;
-  amount: string; // decimal string
+  amount: string;
   currency?: string;
   description?: string;
 };
 
 async function alviereFetch<T>(path: string, body: unknown): Promise<T> {
+  const correlationId = getCorrelationMeta().requestId;
   const res = await fetch(`${env.ALVIERE_API_URL}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${env.ALVIERE_API_KEY}`,
+      ...(correlationId ? { "x-correlation-id": correlationId } : {}),
     },
     body: JSON.stringify(body),
   });

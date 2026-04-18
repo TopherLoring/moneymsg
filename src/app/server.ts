@@ -37,7 +37,7 @@ app.addHook("onSend", async (request, reply, _payload) => {
 // ─── Rate limiting ─────────────────────────────────────────────────
 registerRateLimiting(app).then(() => {
   // ─── Routes ────────────────────────────────────────────────────────
-  app.register(plaidRoutes);
+  if (env.PLAID_ENABLED) app.register(plaidRoutes);
   app.register(kycRoutes);
   app.register(walletRoutes);
   app.register(transferRoutes);
