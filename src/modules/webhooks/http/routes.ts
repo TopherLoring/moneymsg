@@ -33,6 +33,10 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
+  app.removeContentTypeParser("application/json");
+  app.addContentTypeParser("application/json", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
+    done(null, body);
+  });
   app.removeAllContentTypeParsers();
   app.addContentTypeParser("*", { parseAs: "string" }, (req, body, done) => {
   app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
@@ -119,36 +123,15 @@ export async function webhookRoutes(app: FastifyInstance) {
 
         setContextField("providerCorrelationId", event.providerRef);
 
-        const [logged] = await db
-          .insert(webhookEvents)
-          .values({
-            provider,
-            eventType: event.eventType,
+        if (loggedId) {
+          await reconcileWebhookEvent({
+            eventId: loggedId,
             providerRef: event.providerRef,
-            payload: raw || "",
-            correlationRequestId: getCorrelationMeta().requestId,
-          })
-          .onConflictDoNothing({ target: [webhookEvents.provider, webhookEvents.providerRef, webhookEvents.eventType] })
-          .returning({ id: webhookEvents.id });
-
-        if (!logged) {
-          return reply.send({ received: true, duplicate: true });
+            outcome: event.outcome,
+            reason: event.reason,
+          });
+          await finalizeWebhookEvent(loggedId);
         }
-
-        // Fire-and-forget background processing
-        (async () => {
-          try {
-            await reconcileWebhookEvent({
-              eventId: logged.id,
-              providerRef: event.providerRef,
-              outcome: event.outcome,
-              reason: event.reason,
-            });
-            await finalizeWebhookEvent(logged.id);
-          } catch (err) {
-            // Error is logged by reconcileWebhookEvent internally
-          }
-        })();
 
         return reply.send({ received: true });
       } catch (err) {

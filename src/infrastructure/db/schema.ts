@@ -105,7 +105,7 @@ export const webhookEvents = pgTable("webhook_events", {
   lastError: text("last_error"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
-  idxProviderRef: uniqueIndex("idx_webhook_events_provider_ref").on(table.provider, table.providerRef, table.eventType),
+  idxProviderRef: index("idx_webhook_events_provider_ref").on(table.provider, table.providerRef),
   idxReconciliationState: index("idx_webhook_events_recon_state").on(table.reconciliationState),
 }));
 
