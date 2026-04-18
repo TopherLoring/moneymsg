@@ -9,6 +9,34 @@ import { paymentLinks, transactions, wallets } from "../infrastructure/db/schema
 import { SWEEP_INTERVAL_MS } from "../config/constants";
 
 async function sweepExpiredIntents() {
+  const expired = await db
+    .select({
+      id: transactions.id,
+      walletId: transactions.walletId,
+      net: transactions.netAmount,
+      linkId: paymentLinks.id,
+    })
+    .from(transactions)
+    .leftJoin(paymentLinks, eq(paymentLinks.transactionId, transactions.id))
+    .where(
+      and(
+        eq(transactions.status, "pending"),
+        eq(transactions.transactionType, "p2p_send"),
+        lte(transactions.expiresAt, new Date()),
+      ),
+    )
+    .for("update", { skipLocked: true });
+
+
+  if (expired.length === 0) return;
+
+  await db.transaction(async (tx) => {
+    const walletUpdates = new Map<string, Decimal>();
+    const txIds: string[] = [];
+    const linkIds: string[] = [];
+
+    for (const intent of expired) {
+      txIds.push(intent.id);
   await db.transaction(async (tx) => {
     const expired = await tx
       .select({
@@ -48,6 +76,8 @@ async function sweepExpiredIntents() {
       walletUpdates.set(intent.walletId, current.plus(intent.net));
     }
 
+    // Update wallets
+    for (const [walletId, netTotal] of Array.from(walletUpdates.entries())) {
     // Sort wallet IDs to enforce deterministic lock order and prevent deadlocks
     const sortedWalletIds = Array.from(walletUpdates.keys()).sort();
 
