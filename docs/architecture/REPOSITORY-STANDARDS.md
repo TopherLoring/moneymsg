@@ -4,14 +4,18 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.1.0 |
-| Updated | 2026.04.18 03:56 AM CT |
+| Version | v1.3.0 |
+| Updated | 2026.04.18 08:45 AM CT |
 | Status | Review |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.3.0 — 2026.04.18 08:45 AM CT
+
+- Added Definition of Done governance requirements tying documentation completion to changelog logging and canonical task-status updates
 
 ### v1.1.0 — 2026.04.18 03:56 AM CT
 
@@ -167,3 +171,4 @@ This standards pass is complete when:
 - source folders reflect business ownership instead of generic catch-all buckets
 - version tracking exists in every governed document and includes both date and time
 - AI agents can find architecture, tasks, releases, and business docs in predictable places without relying on tribal knowledge
+- each governed repository update includes a corresponding `CHANGELOG.md` entry and status/evidence updates for the affected canonical task items in `TODO.md`

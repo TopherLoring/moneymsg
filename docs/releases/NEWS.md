@@ -4,14 +4,24 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.5.1 |
-| Updated | 2026.04.18 04:56 AM CT |
+| Version | v1.5.3 |
+| Updated | 2026.04.18 08:45 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.5.3 — 2026.04.18 08:45 AM CT
+
+- Added release entry for the repository requirements Definition of Done governance update
+- Added explicit release tracking for changelog-and-task-status completion expectations
+
+### v1.5.2 — 2026.04.18 08:20 AM CT
+
+- Added release entry for the tracker reconciliation and release-doc synchronization pass
+- Aligned canonical task and support-tracker documentation metadata with the current repository state
 
 ### v1.5.1 — 2026.04.18 04:56 AM CT
 
@@ -58,6 +68,54 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 08:45 AM CT — Repo Requirements DoD Governance Pass
+
+**Type:** Internal repository governance requirements update
+**Status:** In Progress
+
+#### Summary
+
+Updated repository Definition of Done requirements so governed updates are not considered complete unless they include both changelog logging and corresponding canonical task-status updates.
+
+#### Included in this pass
+
+- Updated `docs/architecture/REPOSITORY-STANDARDS.md` Definition of Done criteria
+- Updated root `TODO.md` Definition of Done and docs-task evidence text
+- Updated `CHANGELOG.md` and this file to record the governance requirement update
+
+#### Notes
+
+- This is a process-governance improvement for traceability and task-state hygiene.
+
+#### Follow-up still required
+
+- Apply this requirement consistently to all future governed repository changes
+- Keep canonical task evidence and release logs in sync per pass
+
+### 2026.04.18 08:20 AM CT — Tracker Reconciliation and Release-Doc Sync Pass
+
+**Type:** Internal repository documentation governance update
+**Status:** In Progress
+
+#### Summary
+
+Reviewed the current repository state and synchronized root and support tracking documents so live task counts, tracker notes, and release records remain accurate.
+
+#### Included in this pass
+
+- Updated root `TODO.md` snapshot and stale task-note details
+- Updated `docs/tasks/TODO.md` and `docs/tasks/00_MASTER_BACKLOG.md` metadata and changelogs
+- Updated `CHANGELOG.md` and this file to record the tracker reconciliation pass
+
+#### Notes
+
+- This is a documentation governance update only; no runtime functionality changed.
+
+#### Follow-up still required
+
+- Continue delivering planned P1/P2 backlog items from root `TODO.md`
+- Keep `docs/tasks/` support packs synchronized whenever canonical status changes
 
 ### 2026.04.18 04:56 AM CT — Task Document Path Normalization Pass
 

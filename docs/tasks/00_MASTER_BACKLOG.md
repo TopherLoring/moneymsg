@@ -4,14 +4,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v2.0.0 |
-| Updated | 2026.04.18 |
+| Version | v2.1.0 |
+| Updated | 2026.04.18 08:20 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Implementation Backlog |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v2.1.0 — 2026.04.18 08:20 AM CT
+
+- Synced reference-overview metadata with the latest canonical backlog state in root `TODO.md`
+- Reaffirmed that this file is structural guidance only and carries no live status authority
 
 ### v2.0.0 — 2026.04.18
 

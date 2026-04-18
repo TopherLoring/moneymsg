@@ -4,14 +4,25 @@
 
 | Field | Value |
 |---|---|
-| Version | v3.0.1 |
-| Updated | 2026.04.18 04:56 AM CT |
+| Version | v3.0.3 |
+| Updated | 2026.04.18 08:45 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v3.0.3 — 2026.04.18 08:45 AM CT
+
+- Added repository-governance Definition of Done requirements for changelog logging and task-status updates
+- Updated active docs-task progress evidence to record this governance requirement pass
+
+### v3.0.2 — 2026.04.18 08:20 AM CT
+
+- Reviewed current repository state and reconciled tracker metadata against the live source tree
+- Corrected progress snapshot totals so planned and in-progress counts match the canonical task register
+- Updated stale worker-file notes to reflect that `src/jobs/reconciliationSweeper.ts` exists while reminder and worker runtime files remain pending
 
 ### v3.0.1 — 2026.04.18 04:56 AM CT
 
@@ -85,8 +96,8 @@ No task navigator, backlog index, matrix export, spreadsheet, or package-local T
 ## Current Progress Snapshot
 
 - Completed tasks: **27**
-- In-progress tasks: **0**
-- Planned tasks: **32**
+- In-progress tasks: **2**
+- Planned tasks: **31**
 - Blocked tasks: **0**
 
 ## Current Priority Focus
@@ -244,9 +255,9 @@ Completed and in-progress implementation statuses carried into this file were im
 
 | Order | Done | Task ID | Priority | Type | Status | Depends On | Workstream | Task | File Path(s) | Acceptance Criteria | Progress / Evidence | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 58 | [ ] | 10.2.1 | P2 | Fix | Planned | 1.2.3,9.2.2 | Workers | Add graceful shutdown, drain behavior, and health exposure for long-running workers. | src/jobs/reconciliationSweeper.ts; src/jobs/reminderSweeper.ts; src/jobs/workerRuntime.ts | Workers stop cleanly, drain safely, and expose health or state where needed. | No completion evidence imported yet. | All three job files (reconciliationSweeper, reminderSweeper, workerRuntime) do not exist yet and must be created as part of this task. |
+| 58 | [ ] | 10.2.1 | P2 | Fix | Planned | 1.2.3,9.2.2 | Workers | Add graceful shutdown, drain behavior, and health exposure for long-running workers. | src/jobs/reconciliationSweeper.ts; src/jobs/reminderSweeper.ts; src/jobs/workerRuntime.ts | Workers stop cleanly, drain safely, and expose health or state where needed. | No completion evidence imported yet. | `src/jobs/reconciliationSweeper.ts` already exists; `src/jobs/reminderSweeper.ts` and `src/jobs/workerRuntime.ts` remain pending and should be delivered with graceful lifecycle behavior in this task. |
 | 59 | [ ] | 10.3.2 | P2 | Add | In Progress | 0.2.1,0.2.3 | Docs | Document all environment variables and maintain a complete .env.example. | README.md; .env.example | README and .env.example fully document required and optional variables without exposing secrets. | README environment categories and documentation cleanup are in progress, but complete environment-variable coverage and template verification still need explicit closeout. | Absorbs legacy MM-008. |
-| 60 | [ ] | 10.3.1 | P2 | Refactor | In Progress | 10.3.2 | Repo Hygiene | Rationalize duplicated docs and define clear source-of-truth locations. | docs/archive/Documents_unpacked/*; docs/archive/app-development-package/*; duplicated top-level docs; README/docs index | Repo has one clear document hierarchy with less duplication and less drift. | Canonical source-of-truth cleanup is active in this pass: authority is collapsing into root `TODO.md`, duplicate task authorities are being demoted, and duplicate backlog material is being removed or archived. | Late cleanup; does not block core ship. |
+| 60 | [ ] | 10.3.1 | P2 | Refactor | In Progress | 10.3.2 | Repo Hygiene | Rationalize duplicated docs and define clear source-of-truth locations. | docs/archive/Documents_unpacked/*; docs/archive/app-development-package/*; duplicated top-level docs; README/docs index | Repo has one clear document hierarchy with less duplication and less drift. | Canonicalization remains active; this pass added repo-governance DoD requirements so each governed change includes a `CHANGELOG.md` entry and corresponding canonical task-status updates in `TODO.md`, while keeping `docs/tasks/` support trackers synchronized. | Late cleanup; does not block core ship. |
 
 ## Canonical Beta Path
 
@@ -287,3 +298,4 @@ Do not skip the blocker lane.
 - [ ] Support, disputes, admin, notifications, recovery, compliance, and fraud operations exist at usable production level
 - [ ] CI enforces install, lint, typecheck, test, build, smoke, and migration gates
 - [ ] Core money flows and critical operational flows are covered by automated tests
+- [ ] Every governed repository change records a matching `CHANGELOG.md` entry and updates the status/evidence of the relevant canonical task(s) in `TODO.md`
