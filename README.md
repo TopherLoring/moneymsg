@@ -3,7 +3,7 @@
 <p align="center">
   <img alt="Black" src="https://img.shields.io/badge/BLACK-000000?style=for-the-badge&labelColor=000000&color=000000" />
   <img alt="White" src="https://img.shields.io/badge/WHITE-FFFFFF?style=for-the-badge&labelColor=FFFFFF&color=FFFFFF" />
-  <img alt="Cyan" src="https://img.shields.io/badge/CYAN-00F8F8?style=for-the-badge&labelColor=00F8F8&color=00F8F8" />
+  <img alt="Accent" src="https://img.shields.io/badge/ACCENT-00FF88?style=for-the-badge&labelColor=00FF88&color=00FF88" />
 </p>
 
 Conversation-native payments for Android.
@@ -14,7 +14,7 @@ Keyboard-first, not keyboard-only.
 
 | Field | Value |
 |---|---|
-| Version | v1.0.1 |
+| Version | v1.0.2 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -22,6 +22,11 @@ Keyboard-first, not keyboard-only.
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.2 — 2026.04.18
+
+- Corrected the unofficial README accent color from `#00F8F8` to `#00FF88`
+- Updated the repository-facing palette reference and badge styling
 
 ### v1.0.1 — 2026.04.18
 
@@ -40,7 +45,7 @@ Current unofficial repository-facing brand colors:
 
 - `#000000`
 - `#FFFFFF`
-- `#00F8F8`
+- `#00FF88`
 
 These are the active unofficial visual reference colors for MoneyMsg until a formal brand system is locked.
 
