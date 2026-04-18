@@ -18,7 +18,7 @@ import { bookTransfer } from "../../../integrations/alviere/client";
 import Decimal from "decimal.js";
 import { requireAuth, assertOwnershipOrElevated } from "../../../shared/authz";
 import { RATE_LIMITS } from "../../../shared/rateLimit";
-import { getRequestContext, setContextField } from "../../../shared/requestContext";
+import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../../../domain/risk";
 import { assertRiskAllow } from "../../../domain/risk/scorer";
 import { deviceInfoSchema, riskMetaSchema } from "../../../shared/schemas";
@@ -272,7 +272,7 @@ export async function transferRoutes(app: FastifyInstance) {
             sourceFundingSource: source.processorToken,
             destinationFundingSource: env.DWOLLA_DEST_FUNDING_SOURCE,
             amount: gross,
-            correlationId: getRequestContext()?.requestId,
+            correlationId: getCorrelationMeta().requestId,
           });
           providerRef = res.id;
         } else {
