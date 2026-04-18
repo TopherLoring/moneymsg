@@ -5,23 +5,22 @@ import { db } from "../../../infrastructure/db";
 import { webhookEvents } from "../../../infrastructure/db/schema";
 import { toErrorResponse } from "../../../shared/errors";
 import { env } from "../../../config/env";
-import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
+import { getRequestContext, setContextField } from "../../../shared/requestContext";
 import { reconcileWebhookEvent, finalizeWebhookEvent } from "../../reconciliation/service";
+import { requireWebhookSecret } from "../../../shared/auth";
 
 type SignatureConfig = {
   header: string;
   secret: string;
   timestampHeader?: string;
+  encoding?: crypto.BinaryToTextEncoding;
 };
 
-function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
+function verifyHmac(body: string, signature: string | undefined, secret: string, encoding?: crypto.BinaryToTextEncoding): boolean {
   if (!signature) return false;
   const hmac = crypto.createHmac("sha256", secret);
-  if (timestamp) {
-    hmac.update(timestamp);
-  }
   hmac.update(body, "utf8");
-  const digest = hmac.digest("hex");
+  const digest = hmac.digest(encoding || "hex");
 
   const digestBuf = Buffer.from(digest, "utf8");
   const sigBuf = Buffer.from(signature, "utf8");
@@ -32,13 +31,20 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 
 export async function webhookRoutes(app: FastifyInstance) {
   app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
+  app.removeAllContentTypeParsers();
+  app.addContentTypeParser("*", { parseAs: "string" }, (req, body, done) => {
+  app.addContentTypeParser("*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
 
   app.addHook("onRequest", async (request, reply) => {
-    const header = request.headers["x-webhook-secret"] as string | undefined;
-    if (!header || header !== env.WEBHOOK_SHARED_SECRET) {
-      return reply.status(401).send({ error: "Unauthorized webhook", code: "UNAUTHORIZED" });
+    try {
+      requireWebhookSecret(request);
+    } catch (err: any) {
+      if (err.code === "UNAUTHORIZED") {
+        return reply.status(err.status || 401).send({ error: err.message || "Unauthorized webhook", code: err.code });
+      }
+      throw err;
     }
   });
 
@@ -70,9 +76,17 @@ export async function webhookRoutes(app: FastifyInstance) {
         }
 
         const ok = verifyHmac(raw || "", signature, config.secret, undefined);
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
+        const ok = verifyHmac(raw || "", signature, config.secret, undefined);
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
-        const parsed = JSON.parse(raw || "{}");
+        let parsed: Record<string, any>;
+        try {
+          parsed = JSON.parse(raw || "{}");
+        } catch (e) {
+          return reply.status(400).send({ error: "Invalid JSON payload", code: "VALIDATION_FAILED" });
+        }
         const event = normalizeEvent(provider, parsed);
         if (!event) return reply.send({ ignored: true });
 
@@ -102,7 +116,7 @@ export async function webhookRoutes(app: FastifyInstance) {
               eventType: event.eventType,
               providerRef: event.providerRef,
               payload: raw || "",
-              correlationRequestId: getCorrelationMeta().requestId,
+              correlationRequestId: getRequestContext()?.requestId,
             })
             .returning({ id: webhookEvents.id });
           loggedId = logged.id;
@@ -160,4 +174,3 @@ function normalizeEvent(
   }
   return null;
 }
-
