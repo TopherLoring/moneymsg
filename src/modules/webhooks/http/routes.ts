@@ -12,6 +12,8 @@ type SignatureConfig = {
   header: string;
   secret: string;
   timestampHeader?: string;
+  encoding?: "base64" | "hex";
+  encoding?: crypto.BinaryToTextEncoding;
 };
 
 function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
@@ -31,6 +33,7 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
+  app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
   app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
@@ -71,6 +74,8 @@ export async function webhookRoutes(app: FastifyInstance) {
 
         const ok = verifyHmac(raw || "", signature, config.secret, undefined);
 
+        const ok = verifyHmac(raw || "", signature, config.secret, "");
+        const ok = verifyHmac(raw || "", signature, config.secret);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         const parsed = JSON.parse(raw || "{}");
@@ -111,15 +116,36 @@ export async function webhookRoutes(app: FastifyInstance) {
 
         setContextField("providerCorrelationId", event.providerRef);
 
-        if (loggedId) {
-          await reconcileWebhookEvent({
-            eventId: loggedId,
+        const [logged] = await db
+          .insert(webhookEvents)
+          .values({
+            provider,
+            eventType: event.eventType,
             providerRef: event.providerRef,
-            outcome: event.outcome,
-            reason: event.reason,
-          });
-          await finalizeWebhookEvent(loggedId);
+            payload: raw || "",
+            correlationRequestId: getCorrelationMeta().requestId,
+          })
+          .onConflictDoNothing({ target: [webhookEvents.provider, webhookEvents.providerRef, webhookEvents.eventType] })
+          .returning({ id: webhookEvents.id });
+
+        if (!logged) {
+          return reply.send({ received: true, duplicate: true });
         }
+
+        // Fire-and-forget background processing
+        (async () => {
+          try {
+            await reconcileWebhookEvent({
+              eventId: logged.id,
+              providerRef: event.providerRef,
+              outcome: event.outcome,
+              reason: event.reason,
+            });
+            await finalizeWebhookEvent(logged.id);
+          } catch (err) {
+            // Error is logged by reconcileWebhookEvent internally
+          }
+        })();
 
         return reply.send({ received: true });
       } catch (err) {
@@ -161,4 +187,3 @@ function normalizeEvent(
   }
   return null;
 }
-
