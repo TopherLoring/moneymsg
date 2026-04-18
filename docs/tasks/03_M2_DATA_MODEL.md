@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 2: Data Model & Structural Cleanup |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -30,7 +35,7 @@
 
 - [ ] Convert `riskMeta`, `deviceInfo`, and selected payload fields from text to structured jsonb (or equivalent queryable design)
   - **Type:** Migrate
-  - **Files:** `src/db/schema.ts`, `src/db/requests.ts`, migration files
+  - **Files:** `src/infrastructure/db/schema.ts`, `src/infrastructure/db/requests.ts`, migration files
   - **Notes:** Currently stored as text blobs — poor queryability, poor support tooling, poor fraud investigation ergonomics, poor analytics, harder migration path later.
 
 - [ ] Add indexes for operational investigations
@@ -52,7 +57,7 @@
 
 - [ ] Add DB-backed uniqueness/idempotency for payment requests
   - **Type:** Migrate
-  - **Files:** `src/db/requests.ts`, migration files
+  - **Files:** `src/infrastructure/db/requests.ts`, migration files
   - **Notes:** `payment_requests` stores an `idempotencyKey` but has no visible uniqueness/index enforcement like transactions do. Duplicate request creation safety is weaker than transaction safety.
 
 - [ ] Add request-status indexes for expiry and lookup
@@ -75,16 +80,16 @@
 
 - [ ] Add funding-source management states
   - **Type:** Migrate
-  - **Files:** `src/db/schema.ts`, migration files
+  - **Files:** `src/infrastructure/db/schema.ts`, migration files
   - **Notes:** Schema has `isActive` but no lifecycle support for: deleting/removing, replacing, marking verification-failed, preventing duplicates, setting default, nickname/label management.
 
 - [ ] Add list/remove/default-source endpoints
   - **Type:** Add
-  - **Files:** `src/routes/fundingSources.ts`, `src/services/fundingSources.ts`
+  - **Files:** `src/modules/fundingSources/http/routes.ts`, `src/modules/fundingSources/service.ts`
 
 - [ ] Add duplicate-source prevention
   - **Type:** Fix
-  - **Files:** `src/routes/plaid.ts`, schema/migration files
+  - **Files:** `src/modules/plaid/http/routes.ts`, schema/migration files
 
 ### Tests
 

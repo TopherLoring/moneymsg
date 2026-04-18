@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 6: Support, Disputes & Admin Ops |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -30,12 +35,12 @@
 
 - [ ] Add support case schema
   - **Type:** Add/Migrate
-  - **Files:** `src/db/schema.ts`, migrations
+  - **Files:** `src/infrastructure/db/schema.ts`, migrations
   - **Notes:** Tables: cases, messages/updates, attachments metadata, internal notes. Fields: category (payment missing, duplicate charge, recipient issue, account access, KYC/funding source problem, scam/fraud report), status (open, investigating, waiting_on_user, resolved, escalated), transaction/request linking.
 
 - [ ] Add support routes
   - **Type:** Add
-  - **Files:** `src/routes/support.ts`, `src/server.ts`
+  - **Files:** `src/modules/support/http/routes.ts`, `src/app/server.ts`
 
 - [ ] Add transaction/request linking to support cases
   - **Type:** Refactor
@@ -43,7 +48,7 @@
 
 - [ ] Add support service layer
   - **Type:** Add
-  - **Files:** `src/services/support.ts`
+  - **Files:** `src/modules/support/service.ts`
   - **Notes:** Case timeline, macro responses, templated workflows, user-visible resolution updates, audit trail for every agent action.
 
 ### Tests
@@ -67,7 +72,7 @@
 
 - [ ] Add dispute intake and escalation routes
   - **Type:** Add
-  - **Files:** `src/routes/disputes.ts`, `src/services/disputes.ts`
+  - **Files:** `src/modules/disputes/http/routes.ts`, `src/modules/disputes/service.ts`
   - **Notes:** Evidence collection, case-to-provider escalation tracking, operator-controlled reversal/refund workflow.
 
 - [ ] Add wallet/transaction freeze flags and review states
@@ -91,7 +96,7 @@
 
 - [ ] Add admin search/list endpoints
   - **Type:** Add
-  - **Files:** `src/routes/admin.ts`, `src/services/admin.ts`
+  - **Files:** `src/modules/admin/http/routes.ts`, `src/modules/admin/service.ts`
   - **Notes:** User search, wallet search, transaction search, request search, case search, funding source visibility, webhook event visibility, risk flags, recent failures, stuck/pending transfers.
 
 - [ ] Add internal action endpoints
@@ -106,7 +111,7 @@
 
 - [ ] Review and restrict `providerRef` exposure in public API responses
   - **Type:** Fix
-  - **Files:** `src/routes/status.ts`
+  - **Files:** `src/modules/status/http/routes.ts`
   - **Notes:** Status route currently returns `providerRef` directly. Should be reviewed for whether it belongs in public/mobile-facing responses vs admin-only.
 
 ### Tests

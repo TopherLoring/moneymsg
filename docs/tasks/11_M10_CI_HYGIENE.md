@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 10: CI, Worker Ops & Repo Hygiene |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -65,7 +70,7 @@
 
 - [ ] Add graceful shutdown handling to workers
   - **Type:** Fix
-  - **Files:** `src/workers/intentSweeper.ts`, `src/workers/requestSweeper.ts`, future workers
+  - **Files:** `src/jobs/intentSweeper.ts`, `src/jobs/requestSweeper.ts`, future workers
   - **Notes:** Currently simple `setInterval()` scripts with no graceful shutdown.
 
 - [ ] Add heartbeat/health reporting for workers
@@ -92,7 +97,7 @@
 
 - [ ] Rationalize duplicated docs in repo
   - **Type:** Refactor/Ops
-  - **Files:** `Documents_unpacked/Documents/*`, top-level doc copies
+  - **Files:** `docs/archive/Documents_unpacked/Documents/*`, `docs/archive/app-development-package/*`, duplicated top-level docs
   - **Notes:** Duplicated documentation under multiple paths causes bloat, source-of-truth drift, and noisy developer experience.
 
 - [ ] Define source-of-truth doc locations

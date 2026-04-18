@@ -14,14 +14,21 @@ Keyboard-first, not keyboard-only.
 
 | Field | Value |
 |---|---|
-| Version | v1.1.0 |
-| Updated | 2026.04.18 |
+| Version | v2.0.0 |
+| Updated | 2026.04.18 03:56 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v2.0.0 — 2026.04.18 03:56 AM CT
+
+- Standardized the repository by flattening the backend package into the repo root
+- Moved source code into the repo-standard app/config/domain/integrations/infrastructure/jobs/modules/shared layout
+- Archived legacy package-local docs and unpacked duplicates under docs/archive
+- Updated runtime, CI, smoke, and developer entry points to the standardized root layout
 
 ### v1.1.0 — 2026.04.18
 
@@ -118,9 +125,9 @@ Internal wallet-to-wallet transfers are treated as zero-cost internal book movem
 
 ## Current Backend Runtime
 
-The current backend package lives under `App Development/`.
+The backend package now lives at the repository root.
 
-Current package/runtime signals:
+Current runtime/package signals:
 
 - Fastify backend
 - Drizzle ORM
@@ -139,6 +146,7 @@ Current package/runtime signals:
 - `TODO.md` — canonical plan and progress tracker
 - `docs/releases/NEWS.md` — release and repo-change log
 - `CHANGELOG.md` — repo change history
+- `package.json` — Bun-first backend runtime entry point
 
 ### Supporting Task Documentation
 
@@ -153,9 +161,9 @@ Current package/runtime signals:
 
 ### Current Backend Package
 
-- `App Development/package.json`
-- `App Development/.env.example`
-- `App Development/Dockerfile`
+- `package.json`
+- `.env.example`
+- `Dockerfile`
 
 ## Quick Start
 
@@ -168,7 +176,6 @@ Current package/runtime signals:
 ### Local Development
 
 ```bash
-cd "App Development"
 cp .env.example .env
 bun install
 bun run db:migrate
@@ -178,26 +185,24 @@ bun run dev
 ### Build
 
 ```bash
-cd "App Development"
 bun run build
 ```
 
 ### Smoke Check
 
 ```bash
-cd "App Development"
 bun run smoke
 ```
 
 ### Docker
 
 ```bash
-docker build -f "App Development/Dockerfile" -t moneymsg-backend "App Development"
+docker build -t moneymsg-backend .
 ```
 
 ## Environment Categories
 
-The active environment template lives at `App Development/.env.example`.
+The active environment template lives at `.env.example`.
 
 Current categories include:
 

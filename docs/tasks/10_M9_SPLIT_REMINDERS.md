@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 9: Split & Reminder Engine |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -35,7 +40,7 @@
 
 - [ ] Add split routes/services
   - **Type:** Add
-  - **Files:** `src/routes/split.ts`, `src/services/split.ts`
+  - **Files:** `src/modules/split/http/routes.ts`, `src/modules/split/service.ts`
   - **Endpoints:** `POST /api/v1/split/create`, `POST /api/v1/split/claim`
   - **Notes:** Split intent parsing (equal split, custom split). Build split group creation flow from keyboard and app. Generate multi-party payment/request objects. Track participant states: invited, viewed, paid, declined, overdue.
 
@@ -65,13 +70,13 @@
 
 - [ ] Add reminder service/routes
   - **Type:** Add
-  - **Files:** `src/routes/reminder.ts`, `src/services/reminderService.ts`
+  - **Files:** `src/modules/reminder/http/routes.ts`, `src/modules/reminder/service.ts`
   - **Endpoint:** `POST /api/v1/request/nudge`
   - **Notes:** Manual nudge flow, overdue reminder flow, reminder schedule objects, reminder history logging.
 
 - [ ] Add reminder sweeper worker
   - **Type:** Add
-  - **Files:** `src/workers/reminderSweeper.ts`
+  - **Files:** `src/jobs/reminderSweeper.ts`
 
 - [ ] Add recurring-pattern suggestions
   - **Notes:** Detect and suggest: weekly rent, same-person reimbursements, client deposits, recurring split groups, utilities, dinner groups, freelancer invoices.

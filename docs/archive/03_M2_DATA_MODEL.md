@@ -30,7 +30,7 @@
 
 - [ ] Convert `riskMeta`, `deviceInfo`, and selected payload fields from text to structured jsonb (or equivalent queryable design)
   - **Type:** Migrate
-  - **Files:** `src/db/schema.ts`, `src/db/requests.ts`, migration files
+  - **Files:** `src/infrastructure/db/schema.ts`, `src/infrastructure/db/requests.ts`, migration files
   - **Notes:** Currently stored as text blobs — poor queryability, poor support tooling, poor fraud investigation ergonomics, poor analytics, harder migration path later.
 
 - [ ] Add indexes for operational investigations
@@ -52,7 +52,7 @@
 
 - [ ] Add DB-backed uniqueness/idempotency for payment requests
   - **Type:** Migrate
-  - **Files:** `src/db/requests.ts`, migration files
+  - **Files:** `src/infrastructure/db/requests.ts`, migration files
   - **Notes:** `payment_requests` stores an `idempotencyKey` but has no visible uniqueness/index enforcement like transactions do. Duplicate request creation safety is weaker than transaction safety.
 
 - [ ] Add request-status indexes for expiry and lookup
@@ -75,7 +75,7 @@
 
 - [ ] Add funding-source management states
   - **Type:** Migrate
-  - **Files:** `src/db/schema.ts`, migration files
+  - **Files:** `src/infrastructure/db/schema.ts`, migration files
   - **Notes:** Schema has `isActive` but no lifecycle support for: deleting/removing, replacing, marking verification-failed, preventing duplicates, setting default, nickname/label management.
 
 - [ ] Add list/remove/default-source endpoints
@@ -84,7 +84,7 @@
 
 - [ ] Add duplicate-source prevention
   - **Type:** Fix
-  - **Files:** `src/routes/plaid.ts`, schema/migration files
+  - **Files:** `src/modules/plaid/http/routes.ts`, schema/migration files
 
 ### Tests
 

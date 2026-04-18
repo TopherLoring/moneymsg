@@ -40,7 +40,7 @@
 
 - [ ] Add notification routes / inbox API
   - **Type:** Add
-  - **Files:** `src/routes/notifications.ts`, `src/server.ts`
+  - **Files:** `src/routes/notifications.ts`, `src/app/server.ts`
 
 - [ ] Add notification preference controls
   - **Notes:** User-configurable opt-in/opt-out per category.

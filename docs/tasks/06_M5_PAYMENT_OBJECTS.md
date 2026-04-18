@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 5: Conversation-Native Payment Objects |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -30,7 +35,7 @@
 
 - [ ] Add conversation artifact service
   - **Type:** Add
-  - **Files:** `src/services/conversationArtifacts.ts`
+  - **Files:** `src/modules/conversationArtifacts/service.ts`
 
 - [ ] Define object types
   - **Notes:** send card, request card, split card, reminder card, payment status card, completion receipt card.
@@ -43,7 +48,7 @@
 
 - [ ] Add artifact state transitions mapped to transaction/request lifecycle
   - **Type:** Refactor
-  - **Files:** `src/routes/transfer.ts`, `src/routes/request.ts`, `src/routes/status.ts`
+  - **Files:** `src/modules/transfer/http/routes.ts`, `src/modules/request/http/routes.ts`, `src/modules/status/http/routes.ts`
 
 - [ ] Build hidden action target system
   - **Notes:** App link / deep link / lightweight handoff. Replace naked URL insertion with formatted conversation artifact insertion.

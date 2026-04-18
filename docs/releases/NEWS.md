@@ -4,14 +4,25 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.4.0 |
-| Updated | 2026.04.18 03:56 AM CT |
+| Version | v1.5.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.5.1 — 2026.04.18 04:56 AM CT
+
+- Added release entry for the task-document path normalization pass
+- Aligned repository task documentation with the standardized root runtime layout
+
+### v1.5.0 — 2026.04.18 03:56 AM CT
+
+- Added release entry for the repository standardization pass
+- Updated release docs to reflect the new root runtime layout and standardized source-tree structure
+
 
 ### v1.4.0 — 2026.04.18 03:56 AM CT
 
@@ -47,6 +58,59 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 04:56 AM CT — Task Document Path Normalization Pass
+
+**Type:** Internal repository documentation alignment update  
+**Status:** In Progress
+
+#### Summary
+
+Normalized the canonical TODO and milestone support packs so active task documentation points at the standardized root runtime and source-tree layout.
+
+#### Included in this pass
+
+- Updated `TODO.md` to replace stale legacy route, service, lib, and archive references
+- Updated active support packs under `docs/tasks/` to use standardized module/shared/archive paths
+- Updated `CHANGELOG.md` and this file to record the cleanup pass
+
+#### Notes
+
+- Historical release entries may still mention older paths when they describe pre-standardization repo states.
+- Active task planning docs now align with the standardized repository structure.
+
+#### Follow-up still required
+
+- Keep new task additions aligned with the standardized module layout
+- Continue implementation work from the next open P0 items in root `TODO.md`
+
+### 2026.04.18 03:56 AM CT — Repository Standardization Pass
+
+**Type:** Internal repository structure update  
+**Status:** In Progress
+
+#### Summary
+
+Standardized the repository before further feature expansion by flattening the backend package to the repo root and remapping the source tree to the defined standard layout.
+
+#### Included in this pass
+
+- Moved the Bun runtime package, config, scripts, tests, workflow, and migration files from `/` to the repository root
+- Remapped runtime source code into `src/app`, `src/config`, `src/domain`, `src/integrations`, `src/infrastructure`, `src/jobs`, `src/modules`, and `src/shared`
+- Archived legacy package-local docs and unpacked duplicate documents under `docs/archive/`
+- Updated root tracking docs and developer entry points to the new layout
+
+#### Notes
+
+- This pass standardizes structure only and is intended to reduce drift before more implementation work lands.
+- Hidden files still need to be pushed separately when the refactored tree is uploaded to the live repository.
+
+#### Follow-up still required
+
+- Upload the standardized tree to the repository
+- Push hidden-file changes that the upload flow may miss
+- Audit the live repository after upload
+
 
 ### 2026.04.18 03:56 AM CT — Version Tracking Timestamp Standard Pass
 
@@ -85,15 +149,15 @@ Completed the Bun-first MX repository and CI preflight pass for the backend pack
 
 #### Included in this pass
 
-- Added `App Development/bun.lock`
-- Added `App Development/tsconfig.typecheck.json`
-- Added `App Development/scripts/lint.ts`
-- Added `App Development/scripts/smoke.ts`
-- Added `App Development/tests/mx-preflight.test.ts`
+- Added `bun.lock`
+- Added `tsconfig.typecheck.json`
+- Added `scripts/lint.ts`
+- Added `scripts/smoke.ts`
+- Added `tests/mx-preflight.test.ts`
 - Updated `TODO.md` with checkbox-based task rows and completed MX task evidence
 - Updated `.gitignore` and backend package scripts for Bun-first execution
 - Updated backend CI workflow to Bun-first preflight enforcement
-- Removed `App Development/package-lock.json`
+- Removed `package-lock.json`
 
 #### Notes
 
@@ -119,7 +183,7 @@ Collapsed live task authority into root `TODO.md` so plan, dependency order, sta
 - Replaced root `TODO.md` with the canonical plan-and-progress register
 - Reframed `docs/tasks/TODO.md` as a support index only
 - Reframed `docs/tasks/00_MASTER_BACKLOG.md` as a reference overview only
-- Archived `App Development/TODO.md` as a superseded backend-local backlog
+- Archived `docs/archive/app-development-package/TODO.md` as a superseded backend-local backlog
 - Removed duplicate `docs/backlog/00_MASTER_BACKLOG.md`
 - Updated `README.md`, `CHANGELOG.md`, and this file to reflect the new authority model
 
@@ -148,7 +212,7 @@ Added the repository README as the primary repo entry point and set the current 
 
 - Added `README.md`
 - Documented the current MoneyMsg product model across keyboard, companion app, and backend surfaces
-- Added honest runtime and setup guidance for the current backend package under `App Development/`
+- Added honest runtime and setup guidance for the current backend package under `/`
 - Linked canonical task, standards, release, and business-document entry points
 - Recorded the unofficial repository-facing palette as black, white, and `#00FF88`
 

@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 8: Compliance & Fraud Ops |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -35,12 +40,12 @@
 
 - [ ] Add compliance routes/services
   - **Type:** Add
-  - **Files:** `src/routes/compliance.ts`, `src/services/compliance.ts`
+  - **Files:** `src/modules/compliance/http/routes.ts`, `src/modules/compliance/service.ts`
   - **Notes:** Manual review tooling, retention policy enforcement, regulatory event logging, audit export capability.
 
 - [ ] Add policy/consent acceptance tracking
   - **Type:** Add/Migrate
-  - **Files:** schema + migrations, `src/routes/consent.ts`, `src/services/consent.ts`
+  - **Files:** schema + migrations, `src/modules/consent/http/routes.ts`, `src/modules/consent/service.ts`
   - **Notes:** Terms of Service acceptance tracking, Privacy Policy acceptance tracking, payment authorization consent logging, keyboard permission explanation and consent, biometric/PIN authorization consent logging, marketing/notification consent controls, policy version history tied to user records.
 
 ### Tests
@@ -64,7 +69,7 @@
 
 - [ ] Add fraud review routes/services
   - **Type:** Add
-  - **Files:** `src/routes/fraud.ts`, `src/services/fraud.ts`
+  - **Files:** `src/modules/fraud/http/routes.ts`, `src/modules/fraud/service.ts`
   - **Notes:** Decision override workflow, watchlist support, first-party fraud notes/history, known scam pattern tagging, internal fraud outcome feedback loop.
 
 ### Tests

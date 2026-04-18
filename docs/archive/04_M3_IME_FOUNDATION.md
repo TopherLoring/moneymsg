@@ -35,12 +35,12 @@
 
 - [ ] Add load/cashout preview endpoints
   - **Type:** Add
-  - **Files:** `src/routes/wallet.ts`
+  - **Files:** `src/modules/wallet/http/routes.ts`
   - **Notes:** `/api/v1/wallet/load/preview` and `/api/v1/wallet/cashout/preview`. Return: fee preview, funding source summary, expected outcome.
 
 - [ ] Add richer status/listing endpoints for client surfaces
   - **Type:** Add
-  - **Files:** `src/routes/status.ts`, `src/routes/history.ts`
+  - **Files:** `src/modules/status/http/routes.ts`, `src/routes/history.ts`
   - **Notes:** Transaction history list, request history list, funding source list. Currently only single-item status lookups exist — no visible pagination/list APIs for core user surfaces.
 
 ### Tests
@@ -65,7 +65,7 @@
 
 - [ ] Add deep-link metadata into relevant API responses
   - **Type:** Refactor
-  - **Files:** `src/routes/wallet.ts`, `src/routes/request.ts`, `src/routes/status.ts`
+  - **Files:** `src/modules/wallet/http/routes.ts`, `src/modules/request/http/routes.ts`, `src/modules/status/http/routes.ts`
   - **Notes:** Wallet and request responses should include app handoff hints so IME/client can route directly to correct app screen.
 
 ### Tests

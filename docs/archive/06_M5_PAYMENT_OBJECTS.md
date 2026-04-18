@@ -43,7 +43,7 @@
 
 - [ ] Add artifact state transitions mapped to transaction/request lifecycle
   - **Type:** Refactor
-  - **Files:** `src/routes/transfer.ts`, `src/routes/request.ts`, `src/routes/status.ts`
+  - **Files:** `src/modules/transfer/http/routes.ts`, `src/modules/request/http/routes.ts`, `src/modules/status/http/routes.ts`
 
 - [ ] Build hidden action target system
   - **Notes:** App link / deep link / lightweight handoff. Replace naked URL insertion with formatted conversation artifact insertion.

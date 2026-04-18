@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 05:20 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 11: Android IME Build |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 05:20 AM CT
+
+- Updated this milestone pack to the repository-wide timestamped version-tracking standard
+- Kept milestone scope unchanged while aligning governed-doc metadata format with the standardized repo rules
 
 ### v1.0.0 — 2026.04.17
 

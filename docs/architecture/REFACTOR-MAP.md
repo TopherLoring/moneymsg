@@ -27,12 +27,12 @@ This document is the direct move map for the MoneyMsg repo refactor. It translat
 
 The currently observed repo mirror includes these active and noisy areas:
 
-- `src/server.ts`
+- `src/app/server.ts`
 - `src/routes/`
 - `src/lib/`
-- `src/db/`
+- `src/infrastructure/db/`
 - `src/services/`
-- `src/workers/`
+- `src/jobs/`
 - `drizzle/`
 - `Documents_unpacked/`
 - `dist/`
@@ -57,64 +57,64 @@ src/
 
 ### App Bootstrap
 
-- `src/server.ts` → `src/app/server.ts`
+- `src/app/server.ts` → `src/app/server.ts`
 
 ### Config
 
-- `src/lib/env.ts` → `src/config/env.ts`
-- `src/lib/constants.ts` → `src/config/constants.ts`
+- `src/config/env.ts` → `src/config/env.ts`
+- `src/config/constants.ts` → `src/config/constants.ts`
 
 ### Domain
 
-- `src/lib/fees.ts` → `src/domain/fees/fees.ts`
-- `src/lib/risk.ts` → `src/domain/risk/risk.ts`
-- `src/lib/riskScorer.ts` → `src/domain/risk/risk-scorer.ts`
+- `src/domain/fees/index.ts` → `src/domain/fees/fees.ts`
+- `src/domain/risk/index.ts` → `src/domain/risk/risk.ts`
+- `src/domain/risk/scorer.ts` → `src/domain/risk/risk-scorer.ts`
 
 ### Shared
 
-- `src/lib/errors.ts` → `src/shared/errors/errors.ts`
-- `src/lib/schemas.ts` → `src/shared/schemas/index.ts`
-- `src/lib/auth.ts` → `src/shared/auth/index.ts` unless it becomes a dedicated auth module
+- `src/shared/errors.ts` → `src/shared/errors/errors.ts`
+- `src/shared/schemas.ts` → `src/shared/schemas/index.ts`
+- `src/shared/auth.ts` → `src/shared/auth/index.ts` unless it becomes a dedicated auth module
 
 ### Infrastructure
 
-- `src/db/index.ts` → `src/infrastructure/db/index.ts`
-- `src/db/schema.ts` → `src/infrastructure/db/schema.ts`
-- `src/db/requests.ts` → `src/infrastructure/db/requests.ts`
+- `src/infrastructure/db/index.ts` → `src/infrastructure/db/index.ts`
+- `src/infrastructure/db/schema.ts` → `src/infrastructure/db/schema.ts`
+- `src/infrastructure/db/requests.ts` → `src/infrastructure/db/requests.ts`
 
 ### Integrations
 
-- `src/services/alviere.ts` → `src/integrations/alviere/client.ts`
-- `src/services/alviere-kyc.ts` → `src/integrations/alviere/kyc.ts`
-- `src/services/plaid.ts` → `src/integrations/plaid/client.ts`
-- `src/services/dwolla.ts` → `src/integrations/dwolla/client.ts`
-- `src/services/tabapay.ts` → `src/integrations/tabapay/client.ts`
+- `src/integrations/alviere/client.ts` → `src/integrations/alviere/client.ts`
+- `src/integrations/alviere/kyc.ts` → `src/integrations/alviere/kyc.ts`
+- `src/integrations/plaid/client.ts` → `src/integrations/plaid/client.ts`
+- `src/integrations/dwolla/client.ts` → `src/integrations/dwolla/client.ts`
+- `src/integrations/tabapay/client.ts` → `src/integrations/tabapay/client.ts`
 
 ### Jobs
 
-- `src/workers/*` → `src/jobs/*`
+- `src/jobs/*` → `src/jobs/*`
 
 ### Routes and Modules
 
 Current route files observed:
 
-- `src/routes/request.ts`
-- `src/routes/transfer.ts`
-- `src/routes/wallet.ts`
-- `src/routes/status.ts`
-- `src/routes/webhooks.ts`
-- `src/routes/plaid.ts`
-- `src/routes/kyc.ts`
+- `src/modules/request/http/routes.ts`
+- `src/modules/transfer/http/routes.ts`
+- `src/modules/wallet/http/routes.ts`
+- `src/modules/status/http/routes.ts`
+- `src/modules/webhooks/http/routes.ts`
+- `src/modules/plaid/http/routes.ts`
+- `src/modules/kyc/http/routes.ts`
 
 Recommended regrouping:
 
-- `src/routes/request.ts` → `src/modules/requests/http/routes.ts`
-- `src/routes/transfer.ts` → `src/modules/transfers/http/routes.ts`
-- `src/routes/wallet.ts` → `src/modules/wallet/http/routes.ts`
-- `src/routes/status.ts` → `src/modules/status/http/routes.ts`
-- `src/routes/webhooks.ts` → `src/modules/webhooks/http/routes.ts`
-- `src/routes/plaid.ts` → `src/modules/plaid/http/routes.ts`
-- `src/routes/kyc.ts` → `src/modules/kyc/http/routes.ts`
+- `src/modules/request/http/routes.ts` → `src/modules/requests/http/routes.ts`
+- `src/modules/transfer/http/routes.ts` → `src/modules/transfers/http/routes.ts`
+- `src/modules/wallet/http/routes.ts` → `src/modules/wallet/http/routes.ts`
+- `src/modules/status/http/routes.ts` → `src/modules/status/http/routes.ts`
+- `src/modules/webhooks/http/routes.ts` → `src/modules/webhooks/http/routes.ts`
+- `src/modules/plaid/http/routes.ts` → `src/modules/plaid/http/routes.ts`
+- `src/modules/kyc/http/routes.ts` → `src/modules/kyc/http/routes.ts`
 
 ## Document Migration Map
 

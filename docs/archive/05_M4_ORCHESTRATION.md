@@ -30,7 +30,7 @@
 
 - [ ] Add `conversations` table
   - **Type:** Add/Migrate
-  - **Files:** `src/db/schema.ts`, migration
+  - **Files:** `src/infrastructure/db/schema.ts`, migration
   - **Notes:** Fields: id, platform_type (sms, rcs, whatsapp, signal, telegram, unknown), conversation_hash (privacy-safe identifier), created_at.
 
 - [ ] Add `intent_events` table
@@ -74,7 +74,7 @@
 
 - [ ] Add intent route group
   - **Type:** Add
-  - **Files:** `src/routes/intent.ts`, `src/server.ts`
+  - **Files:** `src/routes/intent.ts`, `src/app/server.ts`
 
 - [ ] Add parser/orchestrator services
   - **Type:** Add
@@ -121,7 +121,7 @@
 
 - [ ] Add recipient route
   - **Type:** Add
-  - **Files:** `src/routes/recipient.ts`, `src/server.ts`
+  - **Files:** `src/routes/recipient.ts`, `src/app/server.ts`
   - **Endpoint:** `POST /api/v1/intent/resolve-recipient`
 
 - [ ] Support recipient states: resolved, candidate list, unresolved

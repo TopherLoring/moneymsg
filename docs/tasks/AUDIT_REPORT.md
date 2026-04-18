@@ -81,7 +81,7 @@
 
 ### 0.1 Lock Down API Auth Model — ✅ DONE
 
-- JWT-based auth via `src/lib/session.ts` and `src/lib/authz.ts`
+- JWT-based auth via `src/shared/session.ts` and `src/shared/authz.ts`
 - Role model: user, support, admin, service
 - `requireAuth` preHandler on all 7 route files
 - `assertOwnershipOrElevated` on KYC, Plaid, transfer, wallet, request routes
@@ -122,7 +122,7 @@
 | | Risk signal schema |
 | | Rule codes and score outputs |
 
-**Evidence:** `src/lib/riskScorer.ts` — placeholder comment in source. `src/lib/risk.ts` — 2 functions, no velocity dimensions.
+**Evidence:** `src/domain/risk/scorer.ts` — placeholder comment in source. `src/domain/risk/index.ts` — 2 functions, no velocity dimensions.
 
 ### 1.2 Harden Schemas & Payload Validation — UNTOUCHED
 
@@ -168,7 +168,7 @@ All 5 providers (`alviere`, `alviere-kyc`, `plaid`, `tabapay`, `dwolla`) throw g
 
 ### 3.1 Wallet Summary & Listing APIs — UNTOUCHED
 
-No `walletSummary.ts`, no `history.ts`. Only single-item status lookups in `src/routes/status.ts`. No pagination, no list endpoints.
+No `walletSummary.ts`, no `history.ts`. Only single-item status lookups in `src/modules/status/http/routes.ts`. No pagination, no list endpoints.
 
 ### 3.2 Deep-Link Support — UNTOUCHED
 

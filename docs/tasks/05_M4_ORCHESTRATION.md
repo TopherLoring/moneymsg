@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 4: Intent & Recipient Orchestration |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -30,7 +35,7 @@
 
 - [ ] Add `conversations` table
   - **Type:** Add/Migrate
-  - **Files:** `src/db/schema.ts`, migration
+  - **Files:** `src/infrastructure/db/schema.ts`, migration
   - **Notes:** Fields: id, platform_type (sms, rcs, whatsapp, signal, telegram, unknown), conversation_hash (privacy-safe identifier), created_at.
 
 - [ ] Add `intent_events` table
@@ -74,11 +79,11 @@
 
 - [ ] Add intent route group
   - **Type:** Add
-  - **Files:** `src/routes/intent.ts`, `src/server.ts`
+  - **Files:** `src/modules/intent/http/routes.ts`, `src/app/server.ts`
 
 - [ ] Add parser/orchestrator services
   - **Type:** Add
-  - **Files:** `src/services/intentParser.ts`, `src/services/intentOrchestrator.ts`, `src/lib/intentSchemas.ts`
+  - **Files:** `src/modules/intent/parser.ts`, `src/modules/intent/orchestrator.ts`, `src/modules/intent/schemas.ts`
   - **Notes:** Define normalized intent types: send, request, split, remind. Define canonical payload fields: action type, amount, currency, recipient hint(s), memo, source preference, confidence, missing fields, conversation metadata.
 
 - [ ] Add routes
@@ -116,19 +121,19 @@
 
 - [ ] Add recipient resolver service
   - **Type:** Add
-  - **Files:** `src/services/recipientResolver.ts`
+  - **Files:** `src/modules/recipient/service.ts`
   - **Notes:** Merge inputs from: explicit MoneyMsg contacts, prior counterparties, phone contacts, text-extracted names/handles/phone numbers, conversation hints when available. Add ranking and confidence logic.
 
 - [ ] Add recipient route
   - **Type:** Add
-  - **Files:** `src/routes/recipient.ts`, `src/server.ts`
+  - **Files:** `src/modules/recipient/http/routes.ts`, `src/app/server.ts`
   - **Endpoint:** `POST /api/v1/intent/resolve-recipient`
 
 - [ ] Support recipient states: resolved, candidate list, unresolved
 
 - [ ] Add correction feedback loop
   - **Type:** Add
-  - **Files:** `src/services/recipientResolver.ts`, `src/routes/intent.ts`
+  - **Files:** `src/modules/recipient/service.ts`, `src/modules/intent/http/routes.ts`
   - **Notes:** Store manual corrections as training/heuristic feedback.
 
 - [ ] Add recent/frequent recipient suggestions

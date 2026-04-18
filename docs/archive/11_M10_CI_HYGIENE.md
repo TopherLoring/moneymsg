@@ -65,7 +65,7 @@
 
 - [ ] Add graceful shutdown handling to workers
   - **Type:** Fix
-  - **Files:** `src/workers/intentSweeper.ts`, `src/workers/requestSweeper.ts`, future workers
+  - **Files:** `src/jobs/intentSweeper.ts`, `src/jobs/requestSweeper.ts`, future workers
   - **Notes:** Currently simple `setInterval()` scripts with no graceful shutdown.
 
 - [ ] Add heartbeat/health reporting for workers

@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 7: Notifications & Account Recovery |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -35,12 +40,12 @@
 
 - [ ] Add notification service
   - **Type:** Add
-  - **Files:** `src/services/notifications.ts`
+  - **Files:** `src/modules/notifications/service.ts`
   - **Notes:** Payment event notifications (received, accepted, failed, expired, paid request, reminder sent). Security notifications (new device, unusual transaction, account restricted, funding source changed). Support notifications (case updated, action required).
 
 - [ ] Add notification routes / inbox API
   - **Type:** Add
-  - **Files:** `src/routes/notifications.ts`, `src/server.ts`
+  - **Files:** `src/modules/notifications/http/routes.ts`, `src/app/server.ts`
 
 - [ ] Add notification preference controls
   - **Notes:** User-configurable opt-in/opt-out per category.
@@ -66,12 +71,12 @@
 
 - [ ] Add recovery routes
   - **Type:** Add
-  - **Files:** `src/routes/recovery.ts`, `src/services/recovery.ts`
+  - **Files:** `src/modules/recovery/http/routes.ts`, `src/modules/recovery/service.ts`
   - **Notes:** Account lock/unlock workflow, suspicious access review flow, secure fallback if user loses access to primary device.
 
 - [ ] Add session/device inventory endpoints
   - **Type:** Add
-  - **Files:** `src/routes/sessions.ts`, `src/services/sessions.ts`
+  - **Files:** `src/modules/sessions/http/routes.ts`, `src/modules/sessions/service.ts`
   - **Notes:** Device/session inventory, session revocation, multi-device management.
 
 ### Tests

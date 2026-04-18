@@ -4,14 +4,26 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.5.0 |
-| Updated | 2026.04.18 03:56 AM CT |
+| Version | v1.6.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.6.1 — 2026.04.18 04:56 AM CT
+
+- Recorded the post-standardization task-document path normalization pass
+- Logged cleanup of stale legacy file references in the canonical TODO and support task packs
+
+### v1.6.0 — 2026.04.18 03:56 AM CT
+
+- Recorded the repository standardization pass that flattened the backend package to the repo root
+- Logged the source-tree remap to app/config/domain/integrations/infrastructure/jobs/modules/shared
+- Logged archival of legacy package-local docs and unpacked duplicate materials under docs/archive
+
 
 ### v1.5.0 — 2026.04.18 03:56 AM CT
 
@@ -56,6 +68,62 @@
 - Added repository-level changelog for MoneyMsg
 - Established a versioned documentation anchor for repo governance, releases, tasks, business documents, and archive management
 - Recorded the first standards-focused refactor pass for AI-agent-friendly repository organization
+
+## 2026.04.18 04:56 AM CT — Task Document Path Normalization Pass
+
+### Updated
+- `TODO.md`
+- `docs/tasks/01_M0_SECURITY_BLOCKERS.md`
+- `docs/tasks/02_M1_BACKEND_HARDENING.md`
+- `docs/tasks/03_M2_DATA_MODEL.md`
+- `docs/tasks/04_M3_IME_FOUNDATION.md`
+- `docs/tasks/05_M4_ORCHESTRATION.md`
+- `docs/tasks/06_M5_PAYMENT_OBJECTS.md`
+- `docs/tasks/07_M6_SUPPORT_OPS.md`
+- `docs/tasks/08_M7_NOTIFICATIONS_RECOVERY.md`
+- `docs/tasks/09_M8_COMPLIANCE_FRAUD.md`
+- `docs/tasks/10_M9_SPLIT_REMINDERS.md`
+- `docs/tasks/11_M10_CI_HYGIENE.md`
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+
+### Defined
+- standardized task-file path references for modules, services, shared helpers, and archive locations
+- support-pack alignment with the standardized repository layout
+
+### Notes
+- Historical changelog entries may still reference legacy paths because they describe what existed at the time.
+- The live task register and active support packs now point at the standardized layout.
+
+## 2026.04.18 03:56 AM CT — Repository Standardization Pass
+
+### Updated
+- `README.md`
+- `TODO.md`
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+- `package.json`
+- `tsconfig.json`
+- `tsconfig.typecheck.json`
+- `drizzle.config.ts`
+- `Dockerfile`
+- `.github/workflows/ci.yml`
+- `scripts/lint.ts`
+- `scripts/smoke.ts`
+- `tests/mx-preflight.test.ts`
+
+### Moved
+- backend runtime package files from `App Development/` to the repository root
+- source files into the standardized repo layout under `src/`
+- unpacked duplicate documents into `docs/archive/Documents_unpacked/`
+- legacy package-local guidance and backlog docs into `docs/archive/app-development-package/`
+
+### Defined
+- the repository root as the single runtime root for Bun, Docker, CI, scripts, tests, and migrations
+- the standardized source layout as the active execution baseline for future work
+
+### Notes
+- This is a structural refactor pass only; no new feature scope was introduced.
 
 ## 2026.04.18 03:56 AM CT — Version Tracking Timestamp Standard Pass
 
@@ -110,7 +178,7 @@
 - `App Development/tsconfig.typecheck.json`
 - `App Development/drizzle.config.ts`
 - `App Development/scripts/smoke.ts`
-- `App Development/src/server.ts`
+- `App Development/src/app/server.ts`
 - `App Development/tests/mx-preflight.test.ts`
 - `App Development/.github/workflows/ci.yml`
 

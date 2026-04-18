@@ -2,14 +2,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.0.1 |
+| Updated | 2026.04.18 04:56 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg — Milestone 1: Backend Financial Hardening |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.0.1 — 2026.04.18 04:56 AM CT
+
+- Normalized task file paths to the standardized repository layout
+- Replaced stale pre-standardization references to legacy route, service, lib, and archive paths
 
 ### v1.0.0 — 2026.04.17
 
@@ -30,21 +35,21 @@
 
 - [ ] Replace `evaluateRisk()` placeholder — currently always returns `allow=true`
   - **Type:** Fix
-  - **Files:** `src/lib/riskScorer.ts`
+  - **Files:** `src/domain/risk/scorer.ts`
   - **Notes:** Return structured outcomes: `allow`, `step_up`, `review`, `deny`. Use: deviceInfo, ipAddress, riskMeta, first-use recipient, first-use funding source, abnormal amount, repeated failures, phrase-based scam heuristics, velocity anomalies. Add rule codes and risk score outputs.
 
 - [ ] Expand hard rule checks
   - **Type:** Refactor
-  - **Files:** `src/lib/risk.ts`
+  - **Files:** `src/domain/risk/index.ts`
   - **Notes:** Extend daily limits by transaction type and risk profile. Add: per-device velocity, per-IP velocity, per-recipient velocity, per-funding-source velocity. Improve duplicate checks to include recipient, source, and recent window context. Add first-use step-up requirements.
 
 - [ ] Define structured risk signal schema
   - **Type:** Add
-  - **Files:** `src/lib/riskSignals.ts`, `src/lib/schemas.ts`
+  - **Files:** `src/domain/risk/signals.ts`, `src/shared/schemas.ts`
 
 - [ ] Add first-use and anomaly step-up logic
   - **Type:** Add
-  - **Files:** `src/lib/riskScorer.ts`, `src/lib/risk.ts`
+  - **Files:** `src/domain/risk/scorer.ts`, `src/domain/risk/index.ts`
   - **Notes:** Helper methods: `assertRecipientVelocity`, `assertFundingSourceVelocity`, `assertDeviceVelocity`, `assertIpVelocity`, `assertFirstUseStepUp`, `assertHighRiskPhraseStepUp`.
 
 ### Tests
@@ -65,17 +70,17 @@
 
 - [ ] Replace open-ended `riskMetaSchema` and `deviceInfoSchema` with explicit typed contracts
   - **Type:** Fix
-  - **Files:** `src/lib/schemas.ts`
+  - **Files:** `src/shared/schemas.ts`
   - **Notes:** Currently accept arbitrary objects with unrestricted additional properties. Causes inconsistent client payloads, garbage data, weaker analytics, potential privacy overcollection.
 
 - [ ] Add strong KYC schema
   - **Type:** Add
-  - **Files:** `src/lib/kycSchemas.ts`, `src/routes/kyc.ts`
+  - **Files:** `src/modules/kyc/schemas.ts`, `src/modules/kyc/http/routes.ts`
   - **Notes:** Currently validates only that `kycData` is an object. Bad payloads hit provider code directly.
 
 - [ ] Add validation for Plaid payload fields and funding-source metadata
   - **Type:** Fix
-  - **Files:** `src/routes/plaid.ts`
+  - **Files:** `src/modules/plaid/http/routes.ts`
 
 ### Tests
 
@@ -94,25 +99,25 @@
 
 - [ ] Fix malformed signature handling in HMAC compare
   - **Type:** Fix
-  - **Files:** `src/routes/webhooks.ts`
+  - **Files:** `src/modules/webhooks/http/routes.ts`
   - **Notes:** `timingSafeEqual` requires equal-length buffers. Current `verifyHmac()` does not precheck lengths. Malformed headers throw 500 instead of clean 401.
 
 - [ ] Expand reconciliation state model
   - **Type:** Refactor
-  - **Files:** `src/routes/webhooks.ts`, `src/db/schema.ts`
+  - **Files:** `src/modules/webhooks/http/routes.ts`, `src/infrastructure/db/schema.ts`
   - **Notes:** Separate "logged" from "reconciled" from "finalized". Add provider event correlation improvements and stronger failure handling per transaction type.
 
 - [ ] Add replay-safe reconciliation service
   - **Type:** Add
-  - **Files:** `src/services/reconciliationService.ts`
+  - **Files:** `src/modules/reconciliation/service.ts`
 
 - [ ] Add unresolved event monitoring fields
   - **Type:** Migrate
-  - **Files:** `src/db/schema.ts`, new migration file
+  - **Files:** `src/infrastructure/db/schema.ts`, new migration file
 
 - [ ] Add reconciliation sweeper / retry worker
   - **Type:** Add
-  - **Files:** `src/workers/reconciliationSweeper.ts`
+  - **Files:** `src/jobs/reconciliationSweeper.ts`
 
 ### Tests
 
@@ -132,7 +137,7 @@
 
 - [ ] Normalize provider error classes
   - **Type:** Refactor
-  - **Files:** `src/services/alviere.ts`, `src/services/alviere-kyc.ts`, `src/services/plaid.ts`, `src/services/tabapay.ts`, `src/services/dwolla.ts`, `src/lib/errors.ts`
+  - **Files:** `src/integrations/alviere/client.ts`, `src/integrations/alviere/kyc.ts`, `src/integrations/plaid/client.ts`, `src/integrations/tabapay/client.ts`, `src/integrations/dwolla/client.ts`, `src/shared/errors.ts`
   - **Notes:** Map provider-specific errors into internal enums. Mark retryable vs non-retryable.
 
 - [ ] Attach correlation metadata to outbound provider calls
@@ -141,7 +146,7 @@
 
 - [ ] Persist richer provider metadata where useful
   - **Type:** Migrate
-  - **Files:** `src/db/schema.ts`, new migration(s)
+  - **Files:** `src/infrastructure/db/schema.ts`, new migration(s)
   - **Notes:** Capture raw provider transfer reference and metadata for audits/replay.
 
 ### Tests

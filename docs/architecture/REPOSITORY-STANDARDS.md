@@ -110,18 +110,18 @@ That structure is workable, but it is not ideal for AI execution because ownersh
 
 ### Recommended remap
 
-- `src/server.ts` → `src/app/server.ts`
+- `src/app/server.ts` → `src/app/server.ts`
 - `src/routes/*` → `src/modules/<feature>/http/` or `src/app/http/` depending on ownership
-- `src/lib/env.ts` → `src/config/env.ts`
-- `src/lib/constants.ts` → `src/config/constants.ts`
-- `src/lib/auth.ts` → `src/shared/auth/` or `src/modules/auth/` depending on scope
-- `src/lib/fees.ts` → `src/domain/fees/` because fee logic is business logic
-- `src/lib/risk.ts` and `src/lib/riskScorer.ts` → `src/domain/risk/`
-- `src/lib/errors.ts` → `src/shared/errors/`
-- `src/lib/schemas.ts` → `src/shared/schemas/`
-- `src/db/*` → `src/infrastructure/db/`
-- `src/services/alviere.ts`, `src/services/plaid.ts`, `src/services/dwolla.ts`, `src/services/tabapay.ts`, `src/services/alviere-kyc.ts` → `src/integrations/<provider>/`
-- `src/workers/*` → `src/jobs/`
+- `src/config/env.ts` → `src/config/env.ts`
+- `src/config/constants.ts` → `src/config/constants.ts`
+- `src/shared/auth.ts` → `src/shared/auth/` or `src/modules/auth/` depending on scope
+- `src/domain/fees/index.ts` → `src/domain/fees/` because fee logic is business logic
+- `src/domain/risk/index.ts` and `src/domain/risk/scorer.ts` → `src/domain/risk/`
+- `src/shared/errors.ts` → `src/shared/errors/`
+- `src/shared/schemas.ts` → `src/shared/schemas/`
+- `src/infrastructure/db/*` → `src/infrastructure/db/`
+- `src/integrations/alviere/client.ts`, `src/integrations/plaid/client.ts`, `src/integrations/dwolla/client.ts`, `src/integrations/tabapay/client.ts`, `src/integrations/alviere/kyc.ts` → `src/integrations/<provider>/`
+- `src/jobs/*` → `src/jobs/`
 
 ## AI-Agent Navigation Rules
 

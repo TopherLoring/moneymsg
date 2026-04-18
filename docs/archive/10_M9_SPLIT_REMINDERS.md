@@ -71,7 +71,7 @@
 
 - [ ] Add reminder sweeper worker
   - **Type:** Add
-  - **Files:** `src/workers/reminderSweeper.ts`
+  - **Files:** `src/jobs/reminderSweeper.ts`
 
 - [ ] Add recurring-pattern suggestions
   - **Notes:** Detect and suggest: weekly rent, same-person reimbursements, client deposits, recurring split groups, utilities, dinner groups, freelancer invoices.
