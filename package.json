@@ -19,7 +19,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate:pg",
     "smoke": "bun run scripts/smoke.ts",
-    "ci": "bun run lint && bun run typecheck && bun test && bun run build",
+    "ci": "bun run lint && bun run typecheck && bun test && bun run build && bun run db:check && bun run smoke",
     "db:check": "bun x drizzle-kit check --config drizzle.config.ts"
   },
   "keywords": [
