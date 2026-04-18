@@ -1,5 +1,11 @@
 # MoneyMsg
 
+<p align="center">
+  <img alt="Black" src="https://img.shields.io/badge/BLACK-000000?style=for-the-badge&labelColor=000000&color=000000" />
+  <img alt="White" src="https://img.shields.io/badge/WHITE-FFFFFF?style=for-the-badge&labelColor=FFFFFF&color=FFFFFF" />
+  <img alt="Cyan" src="https://img.shields.io/badge/CYAN-00F8F8?style=for-the-badge&labelColor=00F8F8&color=00F8F8" />
+</p>
+
 Conversation-native payments for Android.
 
 Keyboard-first, not keyboard-only.
@@ -8,7 +14,7 @@ Keyboard-first, not keyboard-only.
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
+| Version | v1.0.1 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -17,11 +23,26 @@ Keyboard-first, not keyboard-only.
 
 ## Changelog
 
+### v1.0.1 — 2026.04.18
+
+- Applied the unofficial MoneyMsg brand palette to the README
+- Added black, white, and `#00F8F8` as the active unofficial visual reference colors for repository-facing documentation
+
 ### v1.0.0 — 2026.04.18
 
 - Initial repository README created
 - Aligned repository entry documentation to the project blueprint, canonical backlog, and repository standards
 - Documented current runtime, repo entry points, setup path, and beta-critical priorities
+
+## Unofficial Brand Palette
+
+Current unofficial repository-facing brand colors:
+
+- `#000000`
+- `#FFFFFF`
+- `#00F8F8`
+
+These are the active unofficial visual reference colors for MoneyMsg until a formal brand system is locked.
 
 ## What MoneyMsg Is
 
