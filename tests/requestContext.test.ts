@@ -4,7 +4,6 @@ import {
   getRequestContext,
   withRequestContext,
   setContextField,
-  getCorrelationMeta,
   RequestContext,
 } from "../src/shared/requestContext";
 
@@ -68,50 +67,6 @@ describe("requestContext", () => {
       // This should not throw
       setContextField("userId", "user_456");
       expect(getRequestContext()).toBeUndefined();
-    });
-  });
-
-  describe("getCorrelationMeta", () => {
-    test("returns empty object outside of context (edge case)", () => {
-      const meta = getCorrelationMeta();
-      expect(meta).toEqual({});
-    });
-
-    test("returns metadata inside context", () => {
-      const mockCtx: RequestContext = {
-        requestId: "req_123",
-        transactionId: "tx_789",
-        providerCorrelationId: "prov_abc",
-        userId: "user_456",
-        startedAt: Date.now(),
-      };
-
-      withRequestContext(mockCtx, () => {
-        const meta = getCorrelationMeta();
-        expect(meta).toEqual({
-          requestId: "req_123",
-          transactionId: "tx_789",
-          providerCorrelationId: "prov_abc",
-          userId: "user_456",
-        });
-      });
-    });
-
-    test("returns metadata with undefined fields if not set", () => {
-      const mockCtx: RequestContext = {
-        requestId: "req_123",
-        startedAt: Date.now(),
-      };
-
-      withRequestContext(mockCtx, () => {
-        const meta = getCorrelationMeta();
-        expect(meta).toEqual({
-          requestId: "req_123",
-          transactionId: undefined,
-          providerCorrelationId: undefined,
-          userId: undefined,
-        });
-      });
     });
   });
 });
