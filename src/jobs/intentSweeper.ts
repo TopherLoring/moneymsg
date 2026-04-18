@@ -64,3 +64,8 @@ void runSweepExpiredIntents();
 setInterval(() => {
   void runSweepExpiredIntents();
 }, SWEEP_INTERVAL_MS);
+  }
+}
+
+sweepExpiredIntents();
+setInterval(sweepExpiredIntents, SWEEP_INTERVAL_MS);

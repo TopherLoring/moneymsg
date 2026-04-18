@@ -39,6 +39,14 @@ function verifyHmac(
 
 export async function webhookRoutes(app: FastifyInstance) {
   app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (_req, body, done) => {
+  app.removeContentTypeParser("application/json");
+  app.addContentTypeParser("application/json", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
+    done(null, body);
+  });
+  app.removeAllContentTypeParsers();
+  app.addContentTypeParser("*", { parseAs: "string" }, (req, body, done) => {
+  app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
+  app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
 
@@ -77,6 +85,11 @@ export async function webhookRoutes(app: FastifyInstance) {
         }
 
         const ok = verifyHmac(raw || "", signature, config.secret, timestamp, config.encoding);
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
+        const ok = verifyHmac(raw || "", signature, config.secret, undefined);
+
+        const ok = verifyHmac(raw || "", signature, config.secret, "");
+        const ok = verifyHmac(raw || "", signature, config.secret);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         const parsed = JSON.parse(raw || "{}");
