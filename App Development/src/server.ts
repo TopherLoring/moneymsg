@@ -15,7 +15,7 @@ import { withRequestContext, generateRequestId } from "./lib/requestContext";
 import { registerRateLimiting } from "./lib/rateLimit";
 
 const app = Fastify({
-  logger: logger as any,
+  loggerInstance: logger as any,
   requestIdHeader: "x-request-id",
   genReqId: () => generateRequestId(),
 });
