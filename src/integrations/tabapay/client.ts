@@ -1,16 +1,13 @@
 import { env } from "../../config/env";
-import { ProviderError } from "../../shared/errors";
-import { AppError, ProviderError } from "../../shared/errors";
-import { env } from "../../config/env";
 import { ProviderError, AppError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
-import { getRequestContext } from "../../shared/requestContext";
+import { getCorrelationMeta } from "../../shared/requestContext";
 
 function tabapayHeaders(): Record<string, string> {
   if (!env.TABAPAY_API_KEY) {
-    throw new ProviderError({ provider: "tabapay", message: "TabaPay not configured", providerStatus: 503 });
+    throw new AppError("TabaPay not configured", "PROVIDER_ERROR", 503);
   }
-  const correlationId = getRequestContext()?.requestId;
+  const correlationId = getCorrelationMeta().requestId;
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${env.TABAPAY_API_KEY}`,
@@ -20,7 +17,7 @@ function tabapayHeaders(): Record<string, string> {
 
 function tabapayBase(): string {
   if (!env.TABAPAY_API_URL) {
-    throw new ProviderError({ provider: "tabapay", message: "TabaPay not configured", providerStatus: 503 });
+    throw new AppError("TabaPay not configured", "PROVIDER_ERROR", 503);
   }
   return env.TABAPAY_API_URL;
 }
@@ -55,7 +52,7 @@ export async function pullFromCard(req: CardPullRequest): Promise<CardPullRespon
       provider: "tabapay",
       message: data?.message || "Debit failed",
       providerStatus: res.status,
-      correlationId: getRequestContext()?.requestId,
+      correlationId: getCorrelationMeta().requestId,
     });
   }
   return data;
@@ -86,7 +83,7 @@ export async function pushToCard(req: CardPushRequest): Promise<{ id: string; st
       provider: "tabapay",
       message: data?.message || "Credit failed",
       providerStatus: res.status,
-      correlationId: getRequestContext()?.requestId,
+      correlationId: getCorrelationMeta().requestId,
     });
   }
   return { id: data.id!, status: data.status! };
