@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.2.1 |
+| Version | v1.3.0 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -12,6 +12,14 @@
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.3.0 — 2026.04.18
+
+- Recorded the canonical TODO unification pass
+- Logged the collapse of live task authority into root `TODO.md`
+- Logged demotion of `docs/tasks/*` authority to support/reference status
+- Logged archival of `App Development/TODO.md` as a superseded backend-local backlog
+- Logged removal of the duplicate `docs/backlog/00_MASTER_BACKLOG.md` file
 
 ### v1.2.1 — 2026.04.18
 
@@ -36,6 +44,31 @@
 - Added repository-level changelog for MoneyMsg
 - Established a versioned documentation anchor for repo governance, releases, tasks, business documents, and archive management
 - Recorded the first standards-focused refactor pass for AI-agent-friendly repository organization
+
+## 2026.04.18 — Canonical TODO Unification Pass
+
+### Updated
+- `TODO.md`
+- `README.md`
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+- `docs/tasks/TODO.md`
+- `docs/tasks/00_MASTER_BACKLOG.md`
+- `App Development/TODO.md`
+
+### Removed
+- `docs/backlog/00_MASTER_BACKLOG.md`
+
+### Defined
+- root `TODO.md` as the only canonical plan and progress tracker
+- `docs/tasks/TODO.md` as a support index only
+- `docs/tasks/00_MASTER_BACKLOG.md` as a reference overview only
+- `App Development/TODO.md` as an archived migration marker instead of a live backend backlog
+
+### Notes
+- Task authority previously existed in too many places and was starting to drift.
+- This pass collapses live status, dependency order, acceptance criteria, and progress evidence into one governed document.
+- Milestone packs under `docs/tasks/` still exist, but they are support detail only.
 
 ## 2026.04.18 — Repository README Creation and Palette Pass
 
