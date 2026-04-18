@@ -171,4 +171,3 @@ function normalizeEvent(
   }
   return null;
 }
-
