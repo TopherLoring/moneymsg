@@ -4,14 +4,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.1.0 |
+| Updated | 2026.04.18 03:56 AM CT |
 | Status | Review |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.1.0 — 2026.04.18 03:56 AM CT
+
+- Updated governed business-document rules to require both date and time in version tracking
+- Aligned business-document timestamp format to the repository-wide U.S. AM/PM standard with timezone
 
 ### v1.0.0 — 2026.04.17
 
@@ -72,7 +77,7 @@ The following document groups were observed across the available repository mirr
 1. Keep one active canonical file per business subject.
 2. Move duplicate exports, unpacked copies, and superseded variants to `docs/archive/`.
 3. Do not store business-critical docs at the repo root unless they are the repo `README.md`, `CHANGELOG.md`, or root `TODO.md`.
-4. Every governed business document must use the standard version tracking header.
+4. Every governed business document must use the standard version tracking header with a timestamp in the format `YYYY.MM.DD hh:mm AM/PM TZ`.
 5. When two documents overlap, the more current and more complete version wins and the loser gets archived.
 
 ## Required Follow-Up Consolidation
