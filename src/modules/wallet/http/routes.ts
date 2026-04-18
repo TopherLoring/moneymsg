@@ -9,6 +9,7 @@ import { pullFromCard, pushToCard } from "../../../integrations/tabapay/client";
 import { initiateBankTransfer, pushToBank } from "../../../integrations/dwolla/client";
 import { env } from "../../../config/env";
 import { requireAuth, assertOwnershipOrElevated } from "../../../shared/authz";
+import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
 import { RATE_LIMITS } from "../../../shared/rateLimit";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../../../domain/risk";
 import { assertRiskAllow } from "../../../domain/risk/scorer";
@@ -96,9 +97,11 @@ export async function walletRoutes(app: FastifyInstance) {
 
         let providerRef: string | undefined;
         if (source.routingProvider === "tabapay") {
+          if (!env.TABAPAY_ENABLED) throw new AppError("TabaPay not enabled", "PROVIDER_ERROR", 503);
           const res = await pullFromCard({ processorToken: source.processorToken, amount: gross });
           providerRef = res.id;
         } else if (source.routingProvider === "dwolla") {
+          if (!env.DWOLLA_ENABLED) throw new AppError("Dwolla not enabled", "PROVIDER_ERROR", 503);
           if (!env.DWOLLA_DEST_FUNDING_SOURCE) {
             throw new AppError("DWOLLA_DEST_FUNDING_SOURCE not configured", "PROVIDER_ERROR", 500);
           }
@@ -106,11 +109,13 @@ export async function walletRoutes(app: FastifyInstance) {
             sourceFundingSource: source.processorToken,
             destinationFundingSource: env.DWOLLA_DEST_FUNDING_SOURCE,
             amount: gross,
+            correlationId: getCorrelationMeta().requestId,
           });
           providerRef = res.id;
         } else {
           throw new AppError("Unsupported routing provider", "PROVIDER_ERROR", 400);
         }
+        if (providerRef) setContextField("providerCorrelationId", providerRef);
 
         await db.transaction(async (tx) => {
           await tx.insert(transactions).values({
@@ -270,12 +275,15 @@ export async function walletRoutes(app: FastifyInstance) {
           return { walletId: lockedWallet.id, txId: created.id };
         });
 
+        setContextField("transactionId", hold.txId);
         let providerRef: string | undefined;
         try {
           if (source.routingProvider === "tabapay") {
+            if (!env.TABAPAY_ENABLED) throw new AppError("TabaPay not enabled", "PROVIDER_ERROR", 503);
             const res = await pushToCard({ processorToken: source.processorToken, amount: net });
             providerRef = res.id;
           } else if (source.routingProvider === "dwolla") {
+            if (!env.DWOLLA_ENABLED) throw new AppError("Dwolla not enabled", "PROVIDER_ERROR", 503);
             if (!env.DWOLLA_SOURCE_FUNDING_SOURCE) {
               throw new AppError("DWOLLA_SOURCE_FUNDING_SOURCE not configured", "PROVIDER_ERROR", 500);
             }
@@ -283,11 +291,13 @@ export async function walletRoutes(app: FastifyInstance) {
               sourceFundingSource: env.DWOLLA_SOURCE_FUNDING_SOURCE,
               destinationFundingSource: source.processorToken,
               amount: net,
+              correlationId: getCorrelationMeta().requestId,
             });
             providerRef = res.id;
           } else {
             throw new AppError("Unsupported routing provider", "PROVIDER_ERROR", 400);
           }
+          if (providerRef) setContextField("providerCorrelationId", providerRef);
         } catch (err) {
           await db.transaction(async (tx) => {
             await tx

@@ -6,6 +6,7 @@ import { AppError, toErrorResponse } from "../../../shared/errors";
 import { submitKyc } from "../../../integrations/alviere/kyc";
 import { requireAuth, assertOwnershipOrElevated } from "../../../shared/authz";
 import { RATE_LIMITS } from "../../../shared/rateLimit";
+import { kycDataSchema } from "../schemas";
 
 export async function kycRoutes(app: FastifyInstance) {
   app.post(
@@ -19,7 +20,7 @@ export async function kycRoutes(app: FastifyInstance) {
           required: ["userId", "kycData"],
           properties: {
             userId: { type: "string", format: "uuid" },
-            kycData: { type: "object" },
+            kycData: kycDataSchema,
           },
         },
       },

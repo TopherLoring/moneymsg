@@ -2,19 +2,20 @@ import { FastifyInstance } from "fastify";
 import crypto from "crypto";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/db";
-import { transactions, wallets } from "../../../infrastructure/db/schema";
-import { toErrorResponse } from "../../../shared/errors";
-import { sql } from "drizzle-orm";
 import { webhookEvents } from "../../../infrastructure/db/schema";
+import { toErrorResponse } from "../../../shared/errors";
+import { env } from "../../../config/env";
+import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
+import { reconcileWebhookEvent, finalizeWebhookEvent } from "../../reconciliation/service";
 
 type SignatureConfig = {
   header: string;
-  secretEnv: string;
+  secret: string;
   timestampHeader?: string;
 };
 
-function verifyHmac(body: string, signature: string | undefined, secret: string | undefined, timestamp?: string): boolean {
-  if (!secret || !signature) return false;
+function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
+  if (!signature) return false;
   const hmac = crypto.createHmac("sha256", secret);
   if (timestamp) {
     hmac.update(timestamp);
@@ -22,8 +23,6 @@ function verifyHmac(body: string, signature: string | undefined, secret: string 
   hmac.update(body, "utf8");
   const digest = hmac.digest("hex");
 
-  // Guard: timingSafeEqual requires equal-length buffers.
-  // Mismatched lengths → reject immediately (not a timing leak for length).
   const digestBuf = Buffer.from(digest, "utf8");
   const sigBuf = Buffer.from(signature, "utf8");
   if (digestBuf.length !== sigBuf.length) return false;
@@ -36,19 +35,24 @@ export async function webhookRoutes(app: FastifyInstance) {
     done(null, body);
   });
 
-  // Minimal auth for webhooks: optionally require shared secret if set
   app.addHook("onRequest", async (request, reply) => {
-    const shared = process.env.WEBHOOK_SHARED_SECRET;
-    if (!shared) return;
     const header = request.headers["x-webhook-secret"] as string | undefined;
-    if (!header || header !== shared) {
+    if (!header || header !== env.WEBHOOK_SHARED_SECRET) {
       return reply.status(401).send({ error: "Unauthorized webhook", code: "UNAUTHORIZED" });
     }
   });
 
   const providers: Record<string, SignatureConfig> = {
-    tabapay: { header: "x-tabapay-signature", secretEnv: "TABAPAY_WEBHOOK_SECRET", timestampHeader: "x-tabapay-timestamp" },
-    dwolla: { header: "x-dwolla-signature", secretEnv: "DWOLLA_WEBHOOK_SECRET", timestampHeader: "x-request-timestamp" },
+    tabapay: {
+      header: "x-tabapay-signature",
+      secret: env.TABAPAY_WEBHOOK_SECRET,
+      timestampHeader: "x-tabapay-timestamp",
+    },
+    dwolla: {
+      header: "x-dwolla-signature",
+      secret: env.DWOLLA_WEBHOOK_SECRET,
+      timestampHeader: "x-request-timestamp",
+    },
   };
 
   for (const provider of Object.keys(providers)) {
@@ -60,14 +64,12 @@ export async function webhookRoutes(app: FastifyInstance) {
         const timestamp = config.timestampHeader
           ? (request.headers[config.timestampHeader] as string | undefined)
           : undefined;
-        const secret = process.env[config.secretEnv];
 
-        const tolerance = Number(process.env.WEBHOOK_MAX_SKEW_SECONDS ?? 300);
-        if (timestamp && Math.abs(Date.now() - Number(timestamp) * 1000) > tolerance * 1000) {
+        if (timestamp && Math.abs(Date.now() - Number(timestamp) * 1000) > env.WEBHOOK_MAX_SKEW_SECONDS * 1000) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
-        const ok = verifyHmac(raw || "", signature, secret, timestamp);
+        const ok = verifyHmac(raw || "", signature, config.secret, config.encoding);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         const parsed = JSON.parse(raw || "{}");
@@ -100,18 +102,22 @@ export async function webhookRoutes(app: FastifyInstance) {
               eventType: event.eventType,
               providerRef: event.providerRef,
               payload: raw || "",
+              correlationRequestId: getCorrelationMeta().requestId,
             })
             .returning({ id: webhookEvents.id });
           loggedId = logged.id;
         }
 
-        await reconcileTransaction(event.providerRef, event.outcome, event.reason);
+        setContextField("providerCorrelationId", event.providerRef);
 
         if (loggedId) {
-          await db
-            .update(webhookEvents)
-            .set({ processed: true, processedAt: new Date() })
-            .where(eq(webhookEvents.id, loggedId));
+          await reconcileWebhookEvent({
+            eventId: loggedId,
+            providerRef: event.providerRef,
+            outcome: event.outcome,
+            reason: event.reason,
+          });
+          await finalizeWebhookEvent(loggedId);
         }
 
         return reply.send({ received: true });
@@ -155,48 +161,3 @@ function normalizeEvent(
   return null;
 }
 
-async function reconcileTransaction(providerRef: string, outcome: Outcome, reason?: string) {
-  const matching = await db
-    .select()
-    .from(transactions)
-    .where(and(eq(transactions.providerRef, providerRef)));
-
-  for (const tx of matching) {
-    // Idempotent reconciliation
-    if (tx.status === "completed" && outcome === "success") continue;
-    if (tx.status === "failed" && outcome === "failed") continue;
-
-    await db.transaction(async (trx) => {
-      if (outcome === "success") {
-        await trx
-          .update(transactions)
-          .set({ status: "completed", lifecycle: "completed", completedAt: new Date(), failureReason: null })
-          .where(eq(transactions.id, tx.id));
-        return;
-      }
-
-      // outcome failed
-      if (tx.transactionType === "load") {
-        await trx
-          .update(wallets)
-          .set({ availableBalance: sql`available_balance - ${tx.netAmount}` })
-          .where(eq(wallets.id, tx.walletId));
-      } else if (tx.transactionType === "cashout") {
-        await trx
-          .update(wallets)
-          .set({ availableBalance: sql`available_balance + ${tx.grossAmount}` })
-          .where(eq(wallets.id, tx.walletId));
-      }
-
-      await trx
-        .update(transactions)
-        .set({
-          status: "failed",
-          lifecycle: "failed",
-          failureReason: reason ?? "provider_failed",
-          completedAt: new Date(),
-        })
-        .where(eq(transactions.id, tx.id));
-    });
-  }
-}
