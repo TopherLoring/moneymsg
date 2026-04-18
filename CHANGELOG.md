@@ -4,14 +4,23 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.6.2 |
-| Updated | 2026.04.18 08:20 AM CT |
+| Version | v1.6.4 |
+| Updated | 2026.04.18 05:56 PM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.6.4 — 2026.04.18 05:56 PM CT
+
+- Updated governance-pass documentation timestamps to the current Central Time value
+
+### v1.6.3 — 2026.04.18 08:45 AM CT
+
+- Recorded the repository-requirements Definition of Done update for changelog and task-status governance
+- Logged synchronization of canonical task evidence to reflect this governance requirement pass
 
 ### v1.6.2 — 2026.04.18 08:20 AM CT
 
@@ -74,6 +83,35 @@
 - Added repository-level changelog for MoneyMsg
 - Established a versioned documentation anchor for repo governance, releases, tasks, business documents, and archive management
 - Recorded the first standards-focused refactor pass for AI-agent-friendly repository organization
+
+## 2026.04.18 05:56 PM CT — Timestamp Alignment (Central Time) Pass
+
+### Updated
+- `TODO.md`
+- `docs/architecture/REPOSITORY-STANDARDS.md`
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+
+### Defined
+- governance and tracker records now use the current Central Time timestamp for this pass
+
+### Notes
+- This pass updates documentation metadata only.
+
+## 2026.04.18 08:45 AM CT — Repo Requirements DoD Governance Pass
+
+### Updated
+- `TODO.md`
+- `docs/architecture/REPOSITORY-STANDARDS.md`
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+
+### Defined
+- repository Definition of Done now requires a changelog entry for governed updates
+- repository Definition of Done now requires updating status/evidence on affected canonical task items in `TODO.md`
+
+### Notes
+- This pass tightens governance expectations for documentation and execution traceability.
 
 ## 2026.04.18 08:20 AM CT — Tracker Reconciliation and Release-Doc Sync Pass
 
