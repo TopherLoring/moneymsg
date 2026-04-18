@@ -10,6 +10,7 @@ import { webhookRoutes } from "../modules/webhooks/http/routes";
 import { requestRoutes } from "../modules/request/http/routes";
 import { statusRoutes } from "../modules/status/http/routes";
 import { port, env } from "../config/env";
+import { pool } from "../infrastructure/db";
 import { logger } from "../infrastructure/logging/logger";
 import { withRequestContext, generateRequestId } from "../shared/requestContext";
 import { registerRateLimiting } from "../shared/rateLimit";
@@ -46,6 +47,19 @@ registerRateLimiting(app).then(() => {
   app.register(webhookRoutes);
 
   app.get("/health", async () => ({ ok: true }));
+
+  app.get("/health/live", async (_request, reply) => {
+    return reply.send({ status: "live" });
+  });
+
+  app.get("/health/ready", async (_request, reply) => {
+    try {
+      await pool.query("SELECT 1");
+      return reply.send({ status: "ready" });
+    } catch {
+      return reply.status(503).send({ status: "not_ready", reason: "db" });
+    }
+  });
 
   // ─── Start ─────────────────────────────────────────────────────────
   app.listen({ port, host: "0.0.0.0" }, (err, address) => {
