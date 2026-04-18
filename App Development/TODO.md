@@ -3,7 +3,7 @@
 ––––––––––––––––––––––––––––––
 VERSION TRACKING
 ––––––––––––––––––––––––––––––
-Version:     v1.1.0
+Version:     v1.2.0
 Updated:     2026.04.17
 Status:      In Progress
 Parent:      TopherLoring Industries
@@ -12,6 +12,15 @@ Author:      Christopher Rowden
 ––––––––––––––––––––––––––––––
 CHANGELOG
 ––––––––––––––––––––––––––––––
+v1.2.0 — 2026.04.17
+- Phase A (M0) complete — all security blockers implemented
+- 0.1 Auth: JWT model, roles, ownership checks on all routes
+- 0.2 Env: full Zod validation, explicit DB SSL, .env.example rewrite
+- 0.3 Rate limiting: global + route-level + abuse throttling
+- 0.4 Logging: pino redaction, correlation IDs, x-request-id
+- 1.3 HMAC buffer crash fix applied
+- CI updated with new env vars
+
 v1.1.0 — 2026.04.17
 - Hardened financial integrity requirements
 - Added Idempotency Key support for API execution
@@ -52,35 +61,35 @@ It reflects the current agreed direction:
 ## Milestone 0 — Security and production blockers
 
 ### 0.1 Auth overhaul
-- [ ] P0 Refactor `src/lib/auth.ts` to replace the shared static API key model
-- [ ] P0 Add authenticated user/session boundaries with ownership checks
-- [ ] P0 Add support/admin/service role separation
-- [ ] P0 Fix `src/routes/kyc.ts` to require auth and verify subject ownership
-- [ ] P0 Fix `src/routes/plaid.ts` to verify user existence and ownership before linking funding sources
-- [ ] P0 Add auth utilities for role and session handling
+- [x] P0 Refactor `src/lib/auth.ts` to replace the shared static API key model
+- [x] P0 Add authenticated user/session boundaries with ownership checks
+- [x] P0 Add support/admin/service role separation
+- [x] P0 Fix `src/routes/kyc.ts` to require auth and verify subject ownership
+- [x] P0 Fix `src/routes/plaid.ts` to verify user existence and ownership before linking funding sources
+- [x] P0 Add auth utilities for role and session handling
 - [ ] P0 Test auth guards for KYC, Plaid, wallet, request, transfer, status, and future admin/support routes
 
 ### 0.2 Environment and config safety
-- [ ] P0 Fix `src/lib/env.ts` to validate all security-critical environment variables
-- [ ] P0 Validate webhook secrets, auth/session secrets, skew windows, and TLS config explicitly
-- [ ] P0 Fix `.env.example` to match actual required runtime configuration
-- [ ] P0 Fix `src/db/index.ts` to remove implicit `rejectUnauthorized: false` behavior and move TLS behavior to explicit config
+- [x] P0 Fix `src/lib/env.ts` to validate all security-critical environment variables
+- [x] P0 Validate webhook secrets, auth/session secrets, skew windows, and TLS config explicitly
+- [x] P0 Fix `.env.example` to match actual required runtime configuration
+- [x] P0 Fix `src/db/index.ts` to remove implicit `rejectUnauthorized: false` behavior and move TLS behavior to explicit config
 - [ ] P0 Test boot failure on invalid/missing security config
 
 ### 0.3 Rate limiting and abuse controls
-- [ ] P0 Add route/global rate limiting infrastructure in `src/server.ts`
-- [ ] P0 Add `src/lib/rateLimit.ts`
-- [ ] P0 Protect KYC, Plaid, intent, request, reminder, status, and auth-sensitive endpoints
-- [ ] P0 Add request/reminder abuse throttling rules
+- [x] P0 Add route/global rate limiting infrastructure in `src/server.ts`
+- [x] P0 Add `src/lib/rateLimit.ts`
+- [x] P0 Protect KYC, Plaid, intent, request, reminder, status, and auth-sensitive endpoints
+- [x] P0 Add request/reminder abuse throttling rules
 - [ ] P0 Add future recipient block/mute and abuse report support hooks
 - [ ] P0 Test route throttling and abuse scenarios
 
 ### 0.4 Logging, redaction, and request tracing
-- [ ] P0 Fix `src/server.ts` logging to use explicit redaction-safe configuration
-- [ ] P0 Add `src/lib/logger.ts`
-- [ ] P0 Add `src/lib/requestContext.ts` for request correlation IDs
+- [x] P0 Fix `src/server.ts` logging to use explicit redaction-safe configuration
+- [x] P0 Add `src/lib/logger.ts`
+- [x] P0 Add `src/lib/requestContext.ts` for request correlation IDs
 - [ ] P0 Propagate correlation IDs through provider service calls and webhook reconciliation
-- [ ] P0 Redact auth headers, processor tokens, KYC payloads, phone/address/PII, and other sensitive values
+- [x] P0 Redact auth headers, processor tokens, KYC payloads, phone/address/PII, and other sensitive values
 - [ ] P0 Test log redaction and correlation propagation
 
 ## Milestone 1 — Backend hardening of the current financial core
@@ -102,7 +111,7 @@ It reflects the current agreed direction:
 - [ ] P0 Test schema validation behavior for KYC, Plaid, wallet, request, transfer, and intent payloads
 
 ### 1.3 Webhooks and reconciliation
-- [ ] P0 Fix `src/routes/webhooks.ts` malformed signature handling so invalid signatures fail cleanly
+- [x] P0 Fix `src/routes/webhooks.ts` malformed signature handling so invalid signatures fail cleanly
 - [ ] P0 Add webhook event idempotency checks in `reconciliationService` to prevent double-processing
 - [ ] P0 Refactor reconciliation to separate logged, reconciled, and finalized states
 - [ ] P0 Add `src/services/reconciliationService.ts`
