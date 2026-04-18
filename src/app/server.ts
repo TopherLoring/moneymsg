@@ -11,9 +11,11 @@ import { requestRoutes } from "../modules/request/http/routes";
 import { statusRoutes } from "../modules/status/http/routes";
 import { port, env } from "../config/env";
 import { pool } from "../infrastructure/db";
-import "../jobs/intentSweeper";
-import "../jobs/requestSweeper";
-import "../jobs/reconciliationSweeper";
+if (process.env.DISABLE_SWEEPERS !== "true") {
+  require("../jobs/intentSweeper");
+  require("../jobs/requestSweeper");
+  require("../jobs/reconciliationSweeper");
+}
 import { logger } from "../infrastructure/logging/logger";
 import { withRequestContext, generateRequestId } from "../shared/requestContext";
 import { registerRateLimiting } from "../shared/rateLimit";

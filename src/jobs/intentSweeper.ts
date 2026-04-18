@@ -2,6 +2,7 @@ import { and, eq, lte, sql } from "drizzle-orm";
 import { db } from "../infrastructure/db";
 import { paymentLinks, transactions, wallets } from "../infrastructure/db/schema";
 import { SWEEP_INTERVAL_MS } from "../config/constants";
+import { logger } from "../infrastructure/logging/logger";
 
 async function sweepExpiredIntents() {
   const expired = await db
@@ -51,5 +52,15 @@ async function sweepExpiredIntents() {
   }
 }
 
-sweepExpiredIntents();
-setInterval(sweepExpiredIntents, SWEEP_INTERVAL_MS);
+async function runSweepExpiredIntents() {
+  try {
+    await sweepExpiredIntents();
+  } catch (err) {
+    logger.error({ err }, "intent_sweeper_error");
+  }
+}
+
+void runSweepExpiredIntents();
+setInterval(() => {
+  void runSweepExpiredIntents();
+}, SWEEP_INTERVAL_MS);
