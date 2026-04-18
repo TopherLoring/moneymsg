@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "208257476786",
+    "project_id": "moneymsg-8e049",
+    "storage_bucket": "moneymsg-8e049.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208257476786:android:4a3a422f6198617e7401ab",
+        "android_client_info": {
+          "package_name": "Com.TopherLoring.MoneyMsg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBd26zIIKcsN6g3_CLM6xK7Gh5wCKlyKRo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
