@@ -12,6 +12,7 @@ import {
 import { sql } from "drizzle-orm";
 
 export const kycStatusEnum = pgEnum("kyc_status", ["pending", "approved", "rejected"]);
+export const webhookStateEnum = pgEnum("webhook_state", ["logged", "reconciled", "finalized"]);
 export const txStatusEnum = pgEnum("tx_status", ["pending", "completed", "reversed", "failed"]);
 export const txTypeEnum = pgEnum("tx_type", ["load", "cashout", "p2p_send", "p2p_receive"]);
 export const walletStatusEnum = pgEnum("wallet_status", ["active", "frozen", "closed"]);
@@ -94,11 +95,18 @@ export const webhookEvents = pgTable("webhook_events", {
   eventType: text("event_type").notNull(),
   providerRef: text("provider_ref"),
   payload: text("payload").notNull(),
+  reconciliationState: webhookStateEnum("reconciliation_state").notNull().default("logged"),
+  correlationRequestId: text("correlation_request_id"),
   processed: boolean("processed").notNull().default(false),
   processedAt: timestamp("processed_at"),
+  reconciledAt: timestamp("reconciled_at"),
+  finalizedAt: timestamp("finalized_at"),
+  retryCount: text("retry_count").notNull().default("0"),
+  lastError: text("last_error"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   idxProviderRef: index("idx_webhook_events_provider_ref").on(table.provider, table.providerRef),
+  idxReconciliationState: index("idx_webhook_events_recon_state").on(table.reconciliationState),
 }));
 
 export const fundingSources = pgTable("funding_sources", {

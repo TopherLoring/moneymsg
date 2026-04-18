@@ -1,5 +1,5 @@
 import { env } from "../../config/env";
-import { AppError } from "../../shared/errors";
+import { AppError, ProviderError } from "../../shared/errors";
 import { getCorrelationMeta } from "../../shared/requestContext";
 
 async function plaidFetch<T>(path: string, body: unknown): Promise<T> {
@@ -17,7 +17,12 @@ async function plaidFetch<T>(path: string, body: unknown): Promise<T> {
   });
   const data = (await res.json().catch(() => ({}))) as T & { error_message?: string };
   if (!res.ok) {
-    throw new AppError(data?.error_message || "Plaid API error", "PROVIDER_ERROR", res.status);
+    throw new ProviderError({
+      provider: "plaid",
+      message: data?.error_message || "API error",
+      providerStatus: res.status,
+      correlationId: getCorrelationMeta().requestId,
+    });
   }
   return data;
 }

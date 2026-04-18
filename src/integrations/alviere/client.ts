@@ -1,5 +1,5 @@
 import { env } from "../../config/env";
-import { AppError } from "../../shared/errors";
+import { ProviderError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
 import { getCorrelationMeta } from "../../shared/requestContext";
 
@@ -26,7 +26,12 @@ async function alviereFetch<T>(path: string, body: unknown): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as T & { message?: string };
 
   if (!res.ok) {
-    throw new AppError(data?.["message"] || "Alviere API error", "PROVIDER_ERROR", res.status);
+    throw new ProviderError({
+      provider: "alviere",
+      message: data?.["message"] || "API error",
+      providerStatus: res.status,
+      correlationId: getCorrelationMeta().requestId,
+    });
   }
 
   return data;

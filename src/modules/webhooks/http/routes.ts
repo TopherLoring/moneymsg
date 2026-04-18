@@ -2,12 +2,11 @@ import { FastifyInstance } from "fastify";
 import crypto from "crypto";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/db";
-import { transactions, wallets } from "../../../infrastructure/db/schema";
-import { toErrorResponse } from "../../../shared/errors";
-import { sql } from "drizzle-orm";
 import { webhookEvents } from "../../../infrastructure/db/schema";
+import { toErrorResponse } from "../../../shared/errors";
 import { env } from "../../../config/env";
-import { setContextField } from "../../../shared/requestContext";
+import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
+import { reconcileWebhookEvent, finalizeWebhookEvent } from "../../reconciliation/service";
 
 type SignatureConfig = {
   header: string;
@@ -103,19 +102,22 @@ export async function webhookRoutes(app: FastifyInstance) {
               eventType: event.eventType,
               providerRef: event.providerRef,
               payload: raw || "",
+              correlationRequestId: getCorrelationMeta().requestId,
             })
             .returning({ id: webhookEvents.id });
           loggedId = logged.id;
         }
 
         setContextField("providerCorrelationId", event.providerRef);
-        await reconcileTransaction(event.providerRef, event.outcome, event.reason);
 
         if (loggedId) {
-          await db
-            .update(webhookEvents)
-            .set({ processed: true, processedAt: new Date() })
-            .where(eq(webhookEvents.id, loggedId));
+          await reconcileWebhookEvent({
+            eventId: loggedId,
+            providerRef: event.providerRef,
+            outcome: event.outcome,
+            reason: event.reason,
+          });
+          await finalizeWebhookEvent(loggedId);
         }
 
         return reply.send({ received: true });
@@ -159,48 +161,3 @@ function normalizeEvent(
   return null;
 }
 
-async function reconcileTransaction(providerRef: string, outcome: Outcome, reason?: string) {
-  const matching = await db
-    .select()
-    .from(transactions)
-    .where(and(eq(transactions.providerRef, providerRef)));
-
-  for (const tx of matching) {
-    setContextField("transactionId", tx.id);
-
-    if (tx.status === "completed" && outcome === "success") continue;
-    if (tx.status === "failed" && outcome === "failed") continue;
-
-    await db.transaction(async (trx) => {
-      if (outcome === "success") {
-        await trx
-          .update(transactions)
-          .set({ status: "completed", lifecycle: "completed", completedAt: new Date(), failureReason: null })
-          .where(eq(transactions.id, tx.id));
-        return;
-      }
-
-      if (tx.transactionType === "load") {
-        await trx
-          .update(wallets)
-          .set({ availableBalance: sql`available_balance - ${tx.netAmount}` })
-          .where(eq(wallets.id, tx.walletId));
-      } else if (tx.transactionType === "cashout") {
-        await trx
-          .update(wallets)
-          .set({ availableBalance: sql`available_balance + ${tx.grossAmount}` })
-          .where(eq(wallets.id, tx.walletId));
-      }
-
-      await trx
-        .update(transactions)
-        .set({
-          status: "failed",
-          lifecycle: "failed",
-          failureReason: reason ?? "provider_failed",
-          completedAt: new Date(),
-        })
-        .where(eq(transactions.id, tx.id));
-    });
-  }
-}

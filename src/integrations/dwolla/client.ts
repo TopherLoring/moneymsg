@@ -1,5 +1,5 @@
 import { env } from "../../config/env";
-import { AppError } from "../../shared/errors";
+import { AppError, ProviderError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
 import { getCorrelationMeta } from "../../shared/requestContext";
 
@@ -27,7 +27,12 @@ async function dwollaRequest<T>(path: string, body: unknown): Promise<T> {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
-    throw new AppError(error?.message || "Dwolla API error", "PROVIDER_ERROR", res.status);
+    throw new ProviderError({
+      provider: "dwolla",
+      message: error?.message || "API error",
+      providerStatus: res.status,
+      correlationId: correlationId,
+    });
   }
 
   const location = res.headers.get("location") || undefined;

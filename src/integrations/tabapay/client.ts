@@ -1,5 +1,5 @@
 import { env } from "../../config/env";
-import { AppError } from "../../shared/errors";
+import { ProviderError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
 import { getCorrelationMeta } from "../../shared/requestContext";
 
@@ -48,7 +48,12 @@ export async function pullFromCard(req: CardPullRequest): Promise<CardPullRespon
 
   const data = (await res.json().catch(() => ({}))) as CardPullResponse & { message?: string };
   if (!res.ok) {
-    throw new AppError(data?.message || "TabaPay debit failed", "PROVIDER_ERROR", res.status);
+    throw new ProviderError({
+      provider: "tabapay",
+      message: data?.message || "Debit failed",
+      providerStatus: res.status,
+      correlationId: getCorrelationMeta().requestId,
+    });
   }
   return data;
 }
@@ -74,7 +79,12 @@ export async function pushToCard(req: CardPushRequest): Promise<{ id: string; st
 
   const data = (await res.json().catch(() => ({}))) as { id?: string; status?: string; message?: string };
   if (!res.ok) {
-    throw new AppError(data?.message || "TabaPay credit failed", "PROVIDER_ERROR", res.status);
+    throw new ProviderError({
+      provider: "tabapay",
+      message: data?.message || "Credit failed",
+      providerStatus: res.status,
+      correlationId: getCorrelationMeta().requestId,
+    });
   }
   return { id: data.id!, status: data.status! };
 }

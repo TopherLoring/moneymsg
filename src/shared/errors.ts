@@ -6,7 +6,10 @@ export type ErrorCode =
   | "IDEMPOTENT_REPLAY"
   | "UNAUTHORIZED"
   | "CONFLICT"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  | "RISK_DENY"
+  | "RISK_REVIEW"
+  | "RISK_STEP_UP";
 
 export class AppError extends Error {
   public readonly code: ErrorCode;
@@ -16,6 +19,24 @@ export class AppError extends Error {
     super(message);
     this.code = code;
     this.status = status;
+  }
+}
+
+export class ProviderError extends AppError {
+  public readonly provider: string;
+  public readonly providerStatus: number;
+  public readonly correlationId?: string;
+
+  constructor(opts: {
+    provider: string;
+    message: string;
+    providerStatus: number;
+    correlationId?: string;
+  }) {
+    super(`${opts.provider}: ${opts.message}`, "PROVIDER_ERROR", opts.providerStatus >= 500 ? 502 : 400);
+    this.provider = opts.provider;
+    this.providerStatus = opts.providerStatus;
+    this.correlationId = opts.correlationId;
   }
 }
 
