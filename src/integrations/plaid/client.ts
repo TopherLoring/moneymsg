@@ -1,12 +1,12 @@
 import { env } from "../../config/env";
 import { AppError, ProviderError } from "../../shared/errors";
-import { getCorrelationMeta } from "../../shared/requestContext";
+import { getRequestContext } from "../../shared/requestContext";
 
 async function plaidFetch<T>(path: string, body: unknown): Promise<T> {
   if (!env.PLAID_ENV_URL || !env.PLAID_CLIENT_ID || !env.PLAID_SECRET) {
     throw new AppError("Plaid not configured", "PROVIDER_ERROR", 503);
   }
-  const correlationId = getCorrelationMeta().requestId;
+  const correlationId = getRequestContext()?.requestId;
   const res = await fetch(`${env.PLAID_ENV_URL}${path}`, {
     method: "POST",
     headers: {
@@ -21,7 +21,7 @@ async function plaidFetch<T>(path: string, body: unknown): Promise<T> {
       provider: "plaid",
       message: data?.error_message || "API error",
       providerStatus: res.status,
-      correlationId: getCorrelationMeta().requestId,
+      correlationId: getRequestContext()?.requestId,
     });
   }
   return data;
