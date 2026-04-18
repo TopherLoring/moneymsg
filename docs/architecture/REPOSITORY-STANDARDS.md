@@ -4,14 +4,20 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
+| Version | v1.1.0 |
+| Updated | 2026.04.18 03:56 AM CT |
 | Status | Review |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.1.0 — 2026.04.18 03:56 AM CT
+
+- Updated repository version-tracking requirements to include both date and time
+- Standardized governed-document timestamps to a U.S. 12-hour clock with AM/PM and timezone
+- Defined timestamp tie-break behavior for same-version document conflicts
 
 ### v1.0.0 — 2026.04.17
 
@@ -23,6 +29,37 @@
 ## Purpose
 
 This document defines the repository structure that MoneyMsg should follow going forward. The goal is simple: make the codebase easier for humans to maintain and easier for AI agents to navigate without guessing.
+
+## Version Tracking Standard
+
+Every governed document in this repository must include a `## Version Tracking` section and a `## Changelog` section.
+
+### Required timestamp format
+
+Use this format for the `Updated` field:
+
+`YYYY.MM.DD hh:mm AM/PM TZ`
+
+Example:
+
+`2026.04.18 03:56 AM CT`
+
+### Changelog heading format
+
+Use this format for changelog release headings:
+
+`### v1.1.0 — YYYY.MM.DD hh:mm AM/PM TZ`
+
+Example:
+
+`### v1.1.0 — 2026.04.18 03:56 AM CT`
+
+### Conflict rule
+
+When governed copies conflict:
+
+1. the highest valid semantic version wins
+2. if the version is the same, the newest valid timestamp wins
 
 ## Top-Level Standard
 
@@ -128,5 +165,5 @@ This standards pass is complete when:
 - active docs are under `docs/`
 - obsolete material is isolated under `docs/archive/` or removed entirely
 - source folders reflect business ownership instead of generic catch-all buckets
-- version tracking exists in every governed document
+- version tracking exists in every governed document and includes both date and time
 - AI agents can find architecture, tasks, releases, and business docs in predictable places without relying on tribal knowledge
