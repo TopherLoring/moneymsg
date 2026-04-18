@@ -1,0 +1,119 @@
+# MoneyMsg Transaction State Machine (Mermaid)
+
+```mermaid
+stateDiagram-v2
+
+[*] --> CREATED
+
+CREATED --> VALIDATING : request_received
+
+VALIDATING --> AUTHORIZED : validation_passed
+VALIDATING --> FAILED : validation_failed
+
+AUTHORIZED --> PROCESSING : provider_request_sent
+
+PROCESSING --> SETTLED : provider_settlement_event
+PROCESSING --> FAILED : provider_failure
+PROCESSING --> FAILED : timeout
+
+SETTLED --> COMPLETED : ledger_update
+
+FAILED --> REVERSED : funds_locked
+FAILED --> TERMINAL : no_funds_locked
+
+REVERSED --> TERMINAL
+
+COMPLETED --> TERMINAL
+
+TERMINAL --> [*]
+```
+
+---
+
+# Payment Link State Machine (Mermaid)
+
+This diagram models **chat-based P2P payments** initiated through the MoneyMsg keyboard.
+
+```mermaid
+stateDiagram-v2
+
+[*] --> LINK_CREATED
+
+LINK_CREATED --> LINK_SHARED : message_sent
+
+LINK_SHARED --> CLAIMED : recipient_accepts
+LINK_SHARED --> EXPIRED : 24h_timeout
+
+CLAIMED --> SETTLED : wallet_transfer
+
+EXPIRED --> REVERSED : release_locked_funds
+
+SETTLED --> COMPLETED
+REVERSED --> COMPLETED
+
+COMPLETED --> [*]
+```
+
+---
+
+# Wallet Balance Locking Logic (Mermaid)
+
+```mermaid
+flowchart TD
+
+A[Start Transfer] --> B{Sufficient Balance?}
+
+B -->|No| F[Reject Transaction]
+
+B -->|Yes| C[Move Funds to Locked Balance]
+
+C --> D[Create Payment Link]
+
+D --> E{Recipient Claims?}
+
+E -->|Yes| G[Transfer to Recipient Wallet]
+
+E -->|No - Expired| H[Return Funds to Sender]
+
+G --> I[Transaction Completed]
+
+H --> I
+```
+
+---
+
+# Provider Event Flow (Mermaid)
+
+Shows how webhook events from infrastructure providers advance the transaction state.
+
+```mermaid
+sequenceDiagram
+
+participant User
+participant MoneyMsg
+participant Orchestrator
+participant Plaid
+participant TabaPay
+participant Dwolla
+participant Ledger
+
+User->>MoneyMsg: Initiate payment
+MoneyMsg->>Orchestrator: Create transaction
+
+Orchestrator->>Plaid: Bank authentication
+Plaid-->>Orchestrator: account_token
+
+Orchestrator->>TabaPay: Card authorization
+TabaPay-->>Orchestrator: authorization_result
+
+Orchestrator->>Dwolla: Bank transfer request
+Dwolla-->>Orchestrator: transfer_created
+
+Dwolla-->>Orchestrator: transfer_completed
+Orchestrator->>Ledger: Credit wallet
+Ledger-->>Orchestrator: confirmation
+
+Orchestrator-->>MoneyMsg: Transaction completed
+```
+
+---
