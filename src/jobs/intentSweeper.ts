@@ -1,3 +1,5 @@
+import { env } from "../config/env";
+import { and, eq, lte, sql } from "drizzle-orm";
 import { Decimal } from "decimal.js";
 import { logger } from "../infrastructure/logging/logger";
 import { pool } from "../infrastructure/db";
@@ -134,5 +136,8 @@ async function shutdown(signal: string) {
   }
 }
 
+if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepExpiredIntents();  }
+sweepExpiredIntents().catch(console.error);
+setInterval(() => sweepExpiredIntents().catch(console.error), SWEEP_INTERVAL_MS);
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
