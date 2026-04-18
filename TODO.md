@@ -4,14 +4,18 @@
 
 | Field | Value |
 |---|---|
-| Version | v3.0.3 |
-| Updated | 2026.04.18 08:45 AM CT |
+| Version | v3.0.4 |
+| Updated | 2026.04.18 05:56 PM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v3.0.4 — 2026.04.18 05:56 PM CT
+
+- Refreshed governance-pass timestamps to current Central Time for tracker accuracy
 
 ### v3.0.3 — 2026.04.18 08:45 AM CT
 

@@ -4,14 +4,18 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.5.3 |
-| Updated | 2026.04.18 08:45 AM CT |
+| Version | v1.5.4 |
+| Updated | 2026.04.18 05:56 PM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.5.4 — 2026.04.18 05:56 PM CT
+
+- Updated release and governance timestamps to the current Central Time value
 
 ### v1.5.3 — 2026.04.18 08:45 AM CT
 
@@ -68,6 +72,25 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 05:56 PM CT — Timestamp Alignment (Central Time) Pass
+
+**Type:** Internal repository documentation metadata update
+**Status:** In Progress
+
+#### Summary
+
+Aligned active governance-tracking timestamps to the current Central Time value.
+
+#### Included in this pass
+
+- Updated `TODO.md` version-tracking metadata
+- Updated `docs/architecture/REPOSITORY-STANDARDS.md` version-tracking metadata
+- Updated `CHANGELOG.md` and this file to log the timestamp-alignment pass
+
+#### Notes
+
+- Documentation metadata update only; no runtime behavior changed.
 
 ### 2026.04.18 08:45 AM CT — Repo Requirements DoD Governance Pass
 

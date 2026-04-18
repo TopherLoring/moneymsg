@@ -4,14 +4,18 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.3.0 |
-| Updated | 2026.04.18 08:45 AM CT |
+| Version | v1.3.1 |
+| Updated | 2026.04.18 05:56 PM CT |
 | Status | Review |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.3.1 — 2026.04.18 05:56 PM CT
+
+- Updated repository-governance timestamp metadata to current Central Time
 
 ### v1.3.0 — 2026.04.18 08:45 AM CT
 
