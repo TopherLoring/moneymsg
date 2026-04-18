@@ -4,14 +4,20 @@
 
 | Field | Value |
 |---|---|
-| Version | v3.0.1 |
-| Updated | 2026.04.18 04:56 AM CT |
+| Version | v3.0.2 |
+| Updated | 2026.04.18 08:20 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v3.0.2 — 2026.04.18 08:20 AM CT
+
+- Reviewed current repository state and reconciled tracker metadata against the live source tree
+- Corrected progress snapshot totals so planned and in-progress counts match the canonical task register
+- Updated stale worker-file notes to reflect that `src/jobs/reconciliationSweeper.ts` exists while reminder and worker runtime files remain pending
 
 ### v3.0.1 — 2026.04.18 04:56 AM CT
 
@@ -85,8 +91,8 @@ No task navigator, backlog index, matrix export, spreadsheet, or package-local T
 ## Current Progress Snapshot
 
 - Completed tasks: **27**
-- In-progress tasks: **0**
-- Planned tasks: **32**
+- In-progress tasks: **2**
+- Planned tasks: **31**
 - Blocked tasks: **0**
 
 ## Current Priority Focus
@@ -244,9 +250,9 @@ Completed and in-progress implementation statuses carried into this file were im
 
 | Order | Done | Task ID | Priority | Type | Status | Depends On | Workstream | Task | File Path(s) | Acceptance Criteria | Progress / Evidence | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 58 | [ ] | 10.2.1 | P2 | Fix | Planned | 1.2.3,9.2.2 | Workers | Add graceful shutdown, drain behavior, and health exposure for long-running workers. | src/jobs/reconciliationSweeper.ts; src/jobs/reminderSweeper.ts; src/jobs/workerRuntime.ts | Workers stop cleanly, drain safely, and expose health or state where needed. | No completion evidence imported yet. | All three job files (reconciliationSweeper, reminderSweeper, workerRuntime) do not exist yet and must be created as part of this task. |
+| 58 | [ ] | 10.2.1 | P2 | Fix | Planned | 1.2.3,9.2.2 | Workers | Add graceful shutdown, drain behavior, and health exposure for long-running workers. | src/jobs/reconciliationSweeper.ts; src/jobs/reminderSweeper.ts; src/jobs/workerRuntime.ts | Workers stop cleanly, drain safely, and expose health or state where needed. | No completion evidence imported yet. | `src/jobs/reconciliationSweeper.ts` already exists; `src/jobs/reminderSweeper.ts` and `src/jobs/workerRuntime.ts` remain pending and should be delivered with graceful lifecycle behavior in this task. |
 | 59 | [ ] | 10.3.2 | P2 | Add | In Progress | 0.2.1,0.2.3 | Docs | Document all environment variables and maintain a complete .env.example. | README.md; .env.example | README and .env.example fully document required and optional variables without exposing secrets. | README environment categories and documentation cleanup are in progress, but complete environment-variable coverage and template verification still need explicit closeout. | Absorbs legacy MM-008. |
-| 60 | [ ] | 10.3.1 | P2 | Refactor | In Progress | 10.3.2 | Repo Hygiene | Rationalize duplicated docs and define clear source-of-truth locations. | docs/archive/Documents_unpacked/*; docs/archive/app-development-package/*; duplicated top-level docs; README/docs index | Repo has one clear document hierarchy with less duplication and less drift. | Canonical source-of-truth cleanup is active in this pass: authority is collapsing into root `TODO.md`, duplicate task authorities are being demoted, and duplicate backlog material is being removed or archived. | Late cleanup; does not block core ship. |
+| 60 | [ ] | 10.3.1 | P2 | Refactor | In Progress | 10.3.2 | Repo Hygiene | Rationalize duplicated docs and define clear source-of-truth locations. | docs/archive/Documents_unpacked/*; docs/archive/app-development-package/*; duplicated top-level docs; README/docs index | Repo has one clear document hierarchy with less duplication and less drift. | Canonicalization remains active; this pass refreshed task-support trackers and release docs so `docs/tasks/` references stay aligned to root `TODO.md` authority and the current repo layout. | Late cleanup; does not block core ship. |
 
 ## Canonical Beta Path
 

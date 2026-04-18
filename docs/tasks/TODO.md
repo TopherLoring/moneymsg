@@ -4,14 +4,19 @@
 
 | Field | Value |
 |---|---|
-| Version | v2.0.0 |
-| Updated | 2026.04.18 |
+| Version | v2.1.0 |
+| Updated | 2026.04.18 08:20 AM CT |
 | Status | Final |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v2.1.0 — 2026.04.18 08:20 AM CT
+
+- Synced support-index metadata with the current canonical root tracker
+- Confirmed this index remains non-authoritative and points to root `TODO.md` for live execution status
 
 ### v2.0.0 — 2026.04.18
 
