@@ -69,7 +69,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
-        const ok = verifyHmac(raw || "", signature, config.secret, config.encoding);
+        const ok = verifyHmac(raw || "", signature, config.secret);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         const parsed = JSON.parse(raw || "{}");

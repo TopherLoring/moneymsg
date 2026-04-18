@@ -84,8 +84,8 @@ async function runSweeper() {
   isSweeping = true;
   try {
     await sweepExpiredIntents();
-  } catch (error) {
-    logger.error({ error }, "Error during intent sweep");
+  } catch (error: any) {
+    if (error.code !== "ECONNREFUSED") logger.error({ error }, "Error during intent sweep");
   } finally {
     isSweeping = false;
   }
@@ -122,7 +122,7 @@ async function shutdown(signal: string) {
     process.exit(0);
   } catch (err) {
     logger.error({ err }, "Error closing database pool");
-    process.exit(1);
+    logger ? logger.error("DB down") : console.error("DB down"); process.exit(1);;
   }
 }
 
