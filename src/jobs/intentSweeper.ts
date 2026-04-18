@@ -126,5 +126,7 @@ async function shutdown(signal: string) {
   }
 }
 
+sweepExpiredIntents().catch(console.error);
+setInterval(() => sweepExpiredIntents().catch(console.error), SWEEP_INTERVAL_MS);
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
