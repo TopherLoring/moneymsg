@@ -4,14 +4,20 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.4.0 |
-| Updated | 2026.04.18 |
+| Version | v1.5.0 |
+| Updated | 2026.04.18 03:56 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.5.0 — 2026.04.18 03:56 AM CT
+
+- Recorded the repository-wide version-tracking timestamp standard update
+- Updated governed documentation requirements to require date and time with timezone
+- Synced tracking documents to the new U.S. AM/PM timestamp format
 
 ### v1.4.0 — 2026.04.18
 
@@ -50,6 +56,24 @@
 - Added repository-level changelog for MoneyMsg
 - Established a versioned documentation anchor for repo governance, releases, tasks, business documents, and archive management
 - Recorded the first standards-focused refactor pass for AI-agent-friendly repository organization
+
+## 2026.04.18 03:56 AM CT — Version Tracking Timestamp Standard Pass
+
+### Updated
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+- `docs/architecture/REPOSITORY-STANDARDS.md`
+- `docs/business/BUSINESS-DOCUMENTS.md`
+
+### Defined
+- `Updated` fields must include both date and time
+- timestamp format is `YYYY.MM.DD hh:mm AM/PM TZ`
+- changelog release headings should use the same timestamp format
+- when versions tie, the newest valid timestamp wins
+
+### Notes
+- This standard uses a U.S. 12-hour clock with AM/PM and timezone.
+- Existing historical entries may remain date-only until they are actively revised.
 
 ## 2026.04.18 — MX Repository and CI Preflight Pass
 
