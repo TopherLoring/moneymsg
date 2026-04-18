@@ -4,14 +4,20 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.6.1 |
-| Updated | 2026.04.18 04:56 AM CT |
+| Version | v1.6.2 |
+| Updated | 2026.04.18 08:20 AM CT |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.6.2 — 2026.04.18 08:20 AM CT
+
+- Recorded the tracker reconciliation pass across root `TODO.md` and `docs/tasks/` support documents
+- Logged correction of canonical task snapshot counts and stale worker-file tracker notes
+- Logged release-doc synchronization updates in `docs/releases/NEWS.md`
 
 ### v1.6.1 — 2026.04.18 04:56 AM CT
 
@@ -68,6 +74,23 @@
 - Added repository-level changelog for MoneyMsg
 - Established a versioned documentation anchor for repo governance, releases, tasks, business documents, and archive management
 - Recorded the first standards-focused refactor pass for AI-agent-friendly repository organization
+
+## 2026.04.18 08:20 AM CT — Tracker Reconciliation and Release-Doc Sync Pass
+
+### Updated
+- `TODO.md`
+- `docs/tasks/TODO.md`
+- `docs/tasks/00_MASTER_BACKLOG.md`
+- `CHANGELOG.md`
+- `docs/releases/NEWS.md`
+
+### Defined
+- canonical task snapshot counts now reflect the live register totals
+- support tracker metadata remains synchronized with root canonical backlog authority
+- release and change logs record the tracker reconciliation pass as part of governed repo history
+
+### Notes
+- This pass updates governance and tracking documentation only; no runtime behavior changed.
 
 ## 2026.04.18 04:56 AM CT — Task Document Path Normalization Pass
 
