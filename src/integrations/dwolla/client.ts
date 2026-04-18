@@ -9,6 +9,8 @@ async function dwollaRequest<T>(path: string, body: unknown): Promise<T> {
   }
   const authHeader = `Basic ${Buffer.from(`${env.DWOLLA_APP_KEY}:${env.DWOLLA_APP_SECRET}`).toString("base64")}`;
   const correlationId = getRequestContext()?.requestId;
+  const correlationId = getRequestContext()?.requestId;
+  const authHeader = `Basic ${Buffer.from(`${env.DWOLLA_APP_KEY}:${env.DWOLLA_APP_SECRET}`).toString("base64")}`;
   const res = await fetch(`${env.DWOLLA_ENV_URL}${path}`, {
     method: "POST",
     headers: {

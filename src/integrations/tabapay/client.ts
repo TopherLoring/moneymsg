@@ -1,3 +1,4 @@
+import { AppError, ProviderError } from "../../shared/errors";
 import { env } from "../../config/env";
 import { ProviderError, AppError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
@@ -29,7 +30,7 @@ type CardPullRequest = {
   description?: string;
 };
 
-export type CardPullResponse = {
+type CardPullResponse = {
   id: string;
   status: string;
 };
