@@ -4,14 +4,20 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
-| Status | Review |
+| Version | v1.1.0 |
+| Updated | 2026.04.18 |
+| Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.1.0 — 2026.04.18
+
+- Added release entry for the canonical backlog import pass
+- Recorded the move from a thin task register to a full milestone backlog set
+- Aligned release documentation with the new task-navigation structure
 
 ### v1.0.0 — 2026.04.17
 
@@ -24,6 +30,35 @@
 This file tracks meaningful repository and product-facing release updates for MoneyMsg. It is the canonical place for release notes, standards-pass updates, and future launch communications inside the repo.
 
 ## Release Log
+
+### 2026.04.18 — Canonical Backlog Import Pass
+
+**Type:** Internal repository backlog and governance update  
+**Status:** In Progress
+
+#### Summary
+
+Imported the full MoneyMsg milestone backlog into `docs/tasks/`, separated navigation/governance tasks from execution tasks, and aligned root repo pointers to the canonical backlog structure.
+
+#### Included in this pass
+
+- Added `docs/tasks/00_MASTER_BACKLOG.md`
+- Added milestone backlog files from `01_M0_SECURITY_BLOCKERS.md` through `14_M13_SPEC_REWRITE.md`
+- Updated `docs/tasks/TODO.md` to act as the canonical task navigator
+- Updated root `TODO.md` to point directly to the task navigator and master backlog index
+- Established `docs/tasks/00_MASTER_BACKLOG.md` as the execution source of truth for milestone sequencing and dependency order
+
+#### Notes
+
+- The previous task register was too narrow to serve as the sole MoneyMsg backlog.
+- Repo-governance work remains tracked separately from product and implementation execution.
+- The Android IME milestone file was committed with minor wording normalization during repository import so the milestone could be captured cleanly.
+
+#### Follow-up still required
+
+- Align any remaining legacy backlog references to the canonical task set
+- Archive or supersede obsolete backlog files that are no longer authoritative
+- Continue repo hygiene and documentation canonicalization work already tracked in `docs/tasks/TODO.md`
 
 ### 2026.04.17 — Repository Standards Refactor Pass
 
@@ -65,4 +100,4 @@ Each future entry should include:
 
 ## Scope Rule
 
-Use this file for release history and project/news communication. Use `CHANGELOG.md` for file and repo change history. Use `docs/tasks/TODO.md` for open execution work.
+Use this file for release history and project/news communication. Use `CHANGELOG.md` for file and repo change history. Use `docs/tasks/TODO.md` for navigation/governance work. Use `docs/tasks/00_MASTER_BACKLOG.md` and the milestone backlog files for execution work.
