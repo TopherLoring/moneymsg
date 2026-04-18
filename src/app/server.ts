@@ -14,6 +14,9 @@ import { pool } from "../infrastructure/db";
 import "../jobs/intentSweeper";
 import "../jobs/requestSweeper";
 import "../jobs/reconciliationSweeper";
+if (process.env.DISABLE_SWEEPERS !== "true") { require("../jobs/intentSweeper"); }
+if (process.env.DISABLE_SWEEPERS !== "true") { require("../jobs/requestSweeper"); }
+if (process.env.DISABLE_SWEEPERS !== "true") { require("../jobs/reconciliationSweeper"); }
 import { logger } from "../infrastructure/logging/logger";
 import { withRequestContext, generateRequestId } from "../shared/requestContext";
 import { registerRateLimiting } from "../shared/rateLimit";
