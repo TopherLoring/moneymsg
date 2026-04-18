@@ -32,9 +32,9 @@ const envSchema = z
     ALVIERE_API_URL: z.string().url(),
 
     // --- Feature flags (default on; set to false to disable optional integrations) ---
-    PLAID_ENABLED: z.coerce.boolean().default(true),
-    DWOLLA_ENABLED: z.coerce.boolean().default(true),
-    TABAPAY_ENABLED: z.coerce.boolean().default(true),
+    PLAID_ENABLED: z.preprocess((v) => (typeof v === "string" ? v === "true" || v === "1" : v), z.boolean()).default(true),
+    DWOLLA_ENABLED: z.preprocess((v) => (typeof v === "string" ? v === "true" || v === "1" : v), z.boolean()).default(true),
+    TABAPAY_ENABLED: z.preprocess((v) => (typeof v === "string" ? v === "true" || v === "1" : v), z.boolean()).default(true),
 
     // --- Plaid (optional when PLAID_ENABLED=false) ---
     PLAID_CLIENT_ID: z.string().min(1).optional(),
