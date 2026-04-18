@@ -12,6 +12,8 @@ type SignatureConfig = {
   header: string;
   secret: string;
   timestampHeader?: string;
+  encoding?: "base64" | "hex";
+  encoding?: crypto.BinaryToTextEncoding;
 };
 
 function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string): boolean {
@@ -35,6 +37,9 @@ export async function webhookRoutes(app: FastifyInstance) {
   app.addContentTypeParser("application/json", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
+  app.removeAllContentTypeParsers();
+  app.addContentTypeParser("*", { parseAs: "string" }, (req, body, done) => {
+  app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
   app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
@@ -73,6 +78,10 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
+        const ok = verifyHmac(raw || "", signature, config.secret, undefined);
+
+        const ok = verifyHmac(raw || "", signature, config.secret, "");
         const ok = verifyHmac(raw || "", signature, config.secret);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
