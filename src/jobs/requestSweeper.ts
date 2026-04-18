@@ -23,5 +23,5 @@ async function sweepExpiredRequests() {
   }
 }
 
-sweepExpiredRequests();
-setInterval(sweepExpiredRequests, SWEEP_INTERVAL_MS);
+sweepExpiredRequests().catch(console.error);
+setInterval(() => sweepExpiredRequests().catch(console.error), SWEEP_INTERVAL_MS);

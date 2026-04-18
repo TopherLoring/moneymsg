@@ -44,5 +44,5 @@ async function sweepStaleWebhookEvents() {
   }
 }
 
-sweepStaleWebhookEvents();
-setInterval(sweepStaleWebhookEvents, SWEEP_INTERVAL_MS);
+sweepStaleWebhookEvents().catch(console.error);
+setInterval(() => sweepStaleWebhookEvents().catch(console.error), SWEEP_INTERVAL_MS);

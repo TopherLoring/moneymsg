@@ -51,5 +51,5 @@ async function sweepExpiredIntents() {
   }
 }
 
-sweepExpiredIntents();
-setInterval(sweepExpiredIntents, SWEEP_INTERVAL_MS);
+sweepExpiredIntents().catch(console.error);
+setInterval(() => sweepExpiredIntents().catch(console.error), SWEEP_INTERVAL_MS);
