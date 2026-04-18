@@ -77,8 +77,6 @@ export async function webhookRoutes(app: FastifyInstance) {
 
         const ok = verifyHmac(raw || "", signature, config.secret, undefined);
         const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
-        const ok = verifyHmac(raw || "", signature, config.secret, undefined);
-        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         let parsed: Record<string, any>;

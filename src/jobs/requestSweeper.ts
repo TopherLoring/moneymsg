@@ -1,4 +1,3 @@
-import { env } from "../config/env";
 import { and, eq, lte } from "drizzle-orm";
 import { db } from "../infrastructure/db";
 import { paymentRequests } from "../infrastructure/db/requests";
@@ -24,6 +23,5 @@ async function sweepExpiredRequests() {
   }
 }
 
-if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepExpiredRequests();  }
-sweepExpiredRequests().catch(console.error);
-setInterval(() => sweepExpiredRequests().catch(console.error), SWEEP_INTERVAL_MS);
+sweepExpiredRequests();
+setInterval(sweepExpiredRequests, SWEEP_INTERVAL_MS);
