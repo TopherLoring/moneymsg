@@ -28,4 +28,3 @@ const pool = new Pool({
 
 export const db = drizzle(pool);
 export { pool };
-export type DbClient = typeof db;
