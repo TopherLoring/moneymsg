@@ -4,4 +4,5 @@ declare module "bun:test" {
   export function expect(value: any): any;
   export function beforeAll(fn: () => void | Promise<void>): void;
   export function afterAll(fn: () => void | Promise<void>): void;
+  export const mock: any;
 }

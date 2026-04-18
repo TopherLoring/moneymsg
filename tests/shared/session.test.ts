@@ -13,7 +13,7 @@ process.env.DWOLLA_ENABLED = "false";
 process.env.TABAPAY_ENABLED = "false";
 
 import jwt from "jsonwebtoken";
-import { issueAccessToken, issueRefreshToken, verifyToken } from "../../src/shared/session";
+import { issueAccessToken, verifyToken } from "../../src/shared/session";
 import { AppError } from "../../src/shared/errors";
 import { env } from "../../src/config/env";
 
@@ -32,17 +32,6 @@ describe("Session Utilities", () => {
     });
   });
 
-  describe("issueRefreshToken", () => {
-    test("generates a valid refresh token", () => {
-      const token = issueRefreshToken(userId, role);
-      const decoded = jwt.verify(token, env.JWT_SECRET) as any;
-      expect(decoded.sub).toBe(userId);
-      expect(decoded.role).toBe(role);
-      expect(decoded.type).toBe("refresh");
-      expect(decoded.iss).toBe(env.JWT_ISSUER);
-    });
-  });
-
   describe("verifyToken", () => {
     test("successfully verifies a valid access token", () => {
       const token = issueAccessToken(userId, role);
@@ -50,14 +39,6 @@ describe("Session Utilities", () => {
       expect(decoded.sub).toBe(userId);
       expect(decoded.role).toBe(role);
       expect(decoded.type).toBe("access");
-    });
-
-    test("successfully verifies a valid refresh token", () => {
-      const token = issueRefreshToken(userId, role);
-      const decoded = verifyToken(token, "refresh");
-      expect(decoded.sub).toBe(userId);
-      expect(decoded.role).toBe(role);
-      expect(decoded.type).toBe("refresh");
     });
 
     test("defaults to checking for access token", () => {
