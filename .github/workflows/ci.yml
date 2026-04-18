@@ -28,7 +28,6 @@ jobs:
       WEBHOOK_SHARED_SECRET: test
       WEBHOOK_MAX_SKEW_SECONDS: 300
       PORT: 18080
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
