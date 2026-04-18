@@ -1,6 +1,6 @@
 import { env } from "../../config/env";
 import { AppError, ProviderError } from "../../shared/errors";
-import { getCorrelationMeta } from "../../shared/requestContext";
+import { getRequestContext } from "../../shared/requestContext";
 
 type KycResult = {
   memberId: string;
@@ -25,7 +25,7 @@ export async function submitKyc(kycData: Record<string, unknown>): Promise<KycRe
       provider: "alviere",
       message: data?.message || "KYC submission failed",
       providerStatus: res.status,
-      correlationId: getCorrelationMeta().requestId,
+      correlationId: getRequestContext()?.requestId,
     });
   }
 

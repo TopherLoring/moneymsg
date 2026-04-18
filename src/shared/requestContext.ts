@@ -46,15 +46,3 @@ export function setContextField<K extends keyof RequestContext>(
     ctx[key] = value;
   }
 }
-
-/** Build a metadata object suitable for attaching to provider calls or log lines */
-export function getCorrelationMeta(): Record<string, string | undefined> {
-  const ctx = store.getStore();
-  if (!ctx) return {};
-  return {
-    requestId: ctx.requestId,
-    transactionId: ctx.transactionId,
-    providerCorrelationId: ctx.providerCorrelationId,
-    userId: ctx.userId,
-  };
-}

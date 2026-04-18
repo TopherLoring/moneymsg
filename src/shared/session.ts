@@ -1,5 +1,5 @@
 // MoneyMsg — JWT Session Utilities
-// v1.0.0 — 2026.04.17
+// v1.0.1 — 2026.04.17
 
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
@@ -29,6 +29,13 @@ export function issueRefreshToken(sub: string, role: TokenRole): string {
     env.JWT_SECRET,
     {
       expiresIn: env.JWT_REFRESH_TTL_SECONDS,
+/** Issue an access token */
+export function issueAccessToken(sub: string, role: TokenRole): string {
+  return jwt.sign(
+    { sub, role, type: "access" } satisfies TokenPayload,
+    env.JWT_SECRET,
+    {
+      expiresIn: env.JWT_ACCESS_TTL_SECONDS,
       issuer: env.JWT_ISSUER,
     },
   );
