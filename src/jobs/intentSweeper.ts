@@ -1,3 +1,4 @@
+import { env } from "../config/env";
 import { and, eq, lte, sql } from "drizzle-orm";
 import { db } from "../infrastructure/db";
 import { paymentLinks, transactions, wallets } from "../infrastructure/db/schema";
@@ -51,5 +52,4 @@ async function sweepExpiredIntents() {
   }
 }
 
-sweepExpiredIntents();
-setInterval(sweepExpiredIntents, SWEEP_INTERVAL_MS);
+if (env.NODE_ENV !== "test") { sweepExpiredIntents();  }

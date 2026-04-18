@@ -1,3 +1,4 @@
+import { env } from "../config/env";
 import { SWEEP_INTERVAL_MS } from "../config/constants";
 import { findStaleEvents, reconcileWebhookEvent, finalizeWebhookEvent } from "../modules/reconciliation/service";
 import { db } from "../infrastructure/db";
@@ -44,5 +45,4 @@ async function sweepStaleWebhookEvents() {
   }
 }
 
-sweepStaleWebhookEvents();
-setInterval(sweepStaleWebhookEvents, SWEEP_INTERVAL_MS);
+if (env.NODE_ENV !== "test") { sweepStaleWebhookEvents();  }
