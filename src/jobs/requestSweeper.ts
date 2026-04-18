@@ -25,3 +25,5 @@ async function sweepExpiredRequests() {
 }
 
 if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepExpiredRequests();  }
+sweepExpiredRequests().catch(console.error);
+setInterval(() => sweepExpiredRequests().catch(console.error), SWEEP_INTERVAL_MS);

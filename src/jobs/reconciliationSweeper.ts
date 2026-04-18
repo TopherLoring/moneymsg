@@ -46,3 +46,5 @@ async function sweepStaleWebhookEvents() {
 }
 
 if (env.NODE_ENV !== "test" && env.NODE_ENV !== "development") { sweepStaleWebhookEvents();  }
+sweepStaleWebhookEvents().catch(console.error);
+setInterval(() => sweepStaleWebhookEvents().catch(console.error), SWEEP_INTERVAL_MS);
