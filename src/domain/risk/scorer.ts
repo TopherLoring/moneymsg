@@ -1,6 +1,6 @@
 import { AppError } from "../../shared/errors";
 
-type RiskInput = {
+export type RiskInput = {
   walletId: string;
   transactionType: "load" | "cashout" | "p2p_send" | "p2p_receive";
   amount: string;
@@ -9,7 +9,7 @@ type RiskInput = {
   riskMeta?: Record<string, unknown>;
 };
 
-type RiskDecision = {
+export type RiskDecision = {
   action: "allow" | "step_up" | "review" | "deny";
   reason?: string;
   score: number; // 0–100
