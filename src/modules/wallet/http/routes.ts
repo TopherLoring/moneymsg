@@ -9,7 +9,7 @@ import { pullFromCard, pushToCard } from "../../../integrations/tabapay/client";
 import { initiateBankTransfer, pushToBank } from "../../../integrations/dwolla/client";
 import { env } from "../../../config/env";
 import { requireAuth, assertOwnershipOrElevated } from "../../../shared/authz";
-import { getRequestContext, setContextField } from "../../../shared/requestContext";
+import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
 import { RATE_LIMITS } from "../../../shared/rateLimit";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../../../domain/risk";
 import { assertRiskAllow } from "../../../domain/risk/scorer";
@@ -109,7 +109,7 @@ export async function walletRoutes(app: FastifyInstance) {
             sourceFundingSource: source.processorToken,
             destinationFundingSource: env.DWOLLA_DEST_FUNDING_SOURCE,
             amount: gross,
-            correlationId: getRequestContext()?.requestId,
+            correlationId: getCorrelationMeta().requestId,
           });
           providerRef = res.id;
         } else {
@@ -291,7 +291,7 @@ export async function walletRoutes(app: FastifyInstance) {
               sourceFundingSource: env.DWOLLA_SOURCE_FUNDING_SOURCE,
               destinationFundingSource: source.processorToken,
               amount: net,
-              correlationId: getRequestContext()?.requestId,
+              correlationId: getCorrelationMeta().requestId,
             });
             providerRef = res.id;
           } else {

@@ -23,7 +23,7 @@ const TYPE_HARD_LIMITS: Record<string, number> = {
   p2p_receive: 10000,
 };
 
-async function evaluateRisk(input: RiskInput): Promise<RiskDecision> {
+export async function evaluateRisk(input: RiskInput): Promise<RiskDecision> {
   const amount = parseFloat(input.amount);
   const hardLimit = TYPE_HARD_LIMITS[input.transactionType];
 
