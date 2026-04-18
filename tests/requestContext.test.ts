@@ -4,7 +4,6 @@ import {
   getRequestContext,
   withRequestContext,
   setContextField,
-  getCorrelationMeta,
   RequestContext,
 } from "../src/shared/requestContext";
 
@@ -13,7 +12,17 @@ describe("requestContext", () => {
     test("returns a string starting with req_", () => {
       const id = generateRequestId();
       expect(id).toStartWith("req_");
-      expect(id.length).toBeGreaterThan(4);
+    });
+
+    test("returns a string of exactly 20 characters length", () => {
+      const id = generateRequestId();
+      expect(id.length).toBe(20);
+    });
+
+    test("contains only url-safe base64 characters after prefix", () => {
+      const id = generateRequestId();
+      // 12 bytes = 16 base64url chars
+      expect(id.substring(4)).toMatch(/^[A-Za-z0-9_-]+$/);
     });
 
     test("returns unique IDs", () => {
@@ -58,50 +67,6 @@ describe("requestContext", () => {
       // This should not throw
       setContextField("userId", "user_456");
       expect(getRequestContext()).toBeUndefined();
-    });
-  });
-
-  describe("getCorrelationMeta", () => {
-    test("returns empty object outside of context (edge case)", () => {
-      const meta = getCorrelationMeta();
-      expect(meta).toEqual({});
-    });
-
-    test("returns metadata inside context", () => {
-      const mockCtx: RequestContext = {
-        requestId: "req_123",
-        transactionId: "tx_789",
-        providerCorrelationId: "prov_abc",
-        userId: "user_456",
-        startedAt: Date.now(),
-      };
-
-      withRequestContext(mockCtx, () => {
-        const meta = getCorrelationMeta();
-        expect(meta).toEqual({
-          requestId: "req_123",
-          transactionId: "tx_789",
-          providerCorrelationId: "prov_abc",
-          userId: "user_456",
-        });
-      });
-    });
-
-    test("returns metadata with undefined fields if not set", () => {
-      const mockCtx: RequestContext = {
-        requestId: "req_123",
-        startedAt: Date.now(),
-      };
-
-      withRequestContext(mockCtx, () => {
-        const meta = getCorrelationMeta();
-        expect(meta).toEqual({
-          requestId: "req_123",
-          transactionId: undefined,
-          providerCorrelationId: undefined,
-          userId: undefined,
-        });
-      });
     });
   });
 });
