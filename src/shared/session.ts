@@ -22,18 +22,6 @@ interface DecodedToken extends TokenPayload {
   iss: string;
 }
 
-/** Issue an access token */
-export function issueAccessToken(sub: string, role: TokenRole): string {
-  return jwt.sign(
-    { sub, role, type: "access" } satisfies TokenPayload,
-    env.JWT_SECRET,
-    {
-      expiresIn: env.JWT_ACCESS_TTL_SECONDS,
-      issuer: env.JWT_ISSUER,
-    },
-  );
-}
-
 /** Issue a refresh token */
 export function issueRefreshToken(sub: string, role: TokenRole): string {
   return jwt.sign(
