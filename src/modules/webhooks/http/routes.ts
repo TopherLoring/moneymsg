@@ -5,7 +5,7 @@ import { db } from "../../../infrastructure/db";
 import { webhookEvents } from "../../../infrastructure/db/schema";
 import { toErrorResponse } from "../../../shared/errors";
 import { env } from "../../../config/env";
-import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
+import { getRequestContext, setContextField } from "../../../shared/requestContext";
 import { reconcileWebhookEvent, finalizeWebhookEvent } from "../../reconciliation/service";
 
 type SignatureConfig = {
@@ -69,7 +69,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
-        const ok = verifyHmac(raw || "", signature, config.secret, config.encoding);
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
         const parsed = JSON.parse(raw || "{}");
@@ -102,7 +102,7 @@ export async function webhookRoutes(app: FastifyInstance) {
               eventType: event.eventType,
               providerRef: event.providerRef,
               payload: raw || "",
-              correlationRequestId: getCorrelationMeta().requestId,
+              correlationRequestId: getRequestContext()?.requestId,
             })
             .returning({ id: webhookEvents.id });
           loggedId = logged.id;

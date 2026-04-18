@@ -1,7 +1,7 @@
 import { env } from "../../config/env";
 import { AppError, ProviderError } from "../../shared/errors";
 import { SUPPORTED_CURRENCY } from "../../config/constants";
-import { getCorrelationMeta } from "../../shared/requestContext";
+import { getRequestContext } from "../../shared/requestContext";
 
 function getAuthHeader(): string {
   if (!env.DWOLLA_APP_KEY || !env.DWOLLA_APP_SECRET) {
@@ -14,7 +14,7 @@ async function dwollaRequest<T>(path: string, body: unknown): Promise<T> {
   if (!env.DWOLLA_ENV_URL) {
     throw new AppError("Dwolla not configured", "PROVIDER_ERROR", 503);
   }
-  const correlationId = getCorrelationMeta().requestId;
+  const correlationId = getRequestContext()?.requestId;
   const res = await fetch(`${env.DWOLLA_ENV_URL}${path}`, {
     method: "POST",
     headers: {
