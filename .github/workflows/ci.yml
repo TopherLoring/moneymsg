@@ -42,6 +42,22 @@ jobs:
       WEBHOOK_SHARED_SECRET: test
       WEBHOOK_MAX_SKEW_SECONDS: 300
       PORT: 18080
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

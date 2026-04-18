@@ -1,6 +1,6 @@
 import { AppError } from "../../shared/errors";
 
-export type RiskInput = {
+type RiskInput = {
   walletId: string;
   transactionType: "load" | "cashout" | "p2p_send" | "p2p_receive";
   amount: string;
@@ -9,7 +9,7 @@ export type RiskInput = {
   riskMeta?: Record<string, unknown>;
 };
 
-export type RiskDecision = {
+type RiskDecision = {
   action: "allow" | "step_up" | "review" | "deny";
   reason?: string;
   score: number; // 0–100
@@ -23,7 +23,7 @@ const TYPE_HARD_LIMITS: Record<string, number> = {
   p2p_receive: 10000,
 };
 
-export async function evaluateRisk(input: RiskInput): Promise<RiskDecision> {
+async function evaluateRisk(input: RiskInput): Promise<RiskDecision> {
   const amount = parseFloat(input.amount);
   const hardLimit = TYPE_HARD_LIMITS[input.transactionType];
 

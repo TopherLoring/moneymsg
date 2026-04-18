@@ -31,7 +31,9 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
-  app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
+  app.removeAllContentTypeParsers();
+  app.addContentTypeParser("*", { parseAs: "string" }, (req, body, done) => {
+  app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
     done(null, body);
   });
 
@@ -69,10 +71,17 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
+        const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
+        const ok = verifyHmac(raw || "", signature, config.secret, undefined);
         const ok = verifyHmac(raw || "", signature, config.secret);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
-        const parsed = JSON.parse(raw || "{}");
+        let parsed: Record<string, any>;
+        try {
+          parsed = JSON.parse(raw || "{}");
+        } catch (e) {
+          return reply.status(400).send({ error: "Invalid JSON payload", code: "VALIDATION_FAILED" });
+        }
         const event = normalizeEvent(provider, parsed);
         if (!event) return reply.send({ ignored: true });
 
