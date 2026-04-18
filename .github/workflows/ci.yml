@@ -7,23 +7,8 @@ on:
 jobs:
   preflight:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     env:
-      DATABASE_URL: postgres://user:pass@127.0.0.1:5432/db
+      DATABASE_URL: postgres://user:pass@localhost:5432/db
       DB_SSL_MODE: disable
       ALVIERE_API_KEY: dummy
       ALVIERE_API_URL: https://api.alviere.com
@@ -43,22 +28,6 @@ jobs:
       WEBHOOK_SHARED_SECRET: test
       WEBHOOK_MAX_SKEW_SECONDS: 300
       PORT: 18080
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,13 +40,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Wait for Postgres
-        run: |
-          while ! nc -z 127.0.0.1 5432; do
-            echo "Waiting for postgres..."
-            sleep 1
-          done
-
       - name: Lint
         run: bun run lint
 
@@ -89,11 +51,6 @@ jobs:
 
       - name: Build
         run: bun run build
-
-      - name: Run db migration
-        run: bun run db:migrate
-      - name: Db Push
-        run: bun x drizzle-kit push --config drizzle.config.ts
 
       - name: Migration validation
         run: bun run db:check
