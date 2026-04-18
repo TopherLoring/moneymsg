@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.2.0 |
+| Version | v1.2.1 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -12,6 +12,11 @@
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.2.1 — 2026.04.18
+
+- Corrected the unofficial repository-facing accent color from `#00F8F8` to `#00FF88`
+- Kept the repo changelog aligned with the current README palette
 
 ### v1.2.0 — 2026.04.18
 
@@ -45,7 +50,7 @@
 - current runtime and local setup guidance
 - canonical documentation and backlog entry points
 - product model summary for keyboard, companion app, and backend surfaces
-- unofficial repository-facing palette: black, white, and `#00F8F8`
+- unofficial repository-facing palette: black, white, and `#00FF88`
 
 ### Notes
 - The README is intentionally repo-facing, not marketing-facing.
