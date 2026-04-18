@@ -1,0 +1,649 @@
+# MoneyMsg Provider Integration Guide
+
+## 1. System Role of Each Provider
+
+| Provider | Responsibility                                           | Protocol                      |
+| -------- | -------------------------------------------------------- | ----------------------------- |
+| Alviere  | Wallet ledger, KYC/AML, FBO accounts, internal transfers | REST                          |
+| Plaid    | Bank/card authentication + processor tokens              | REST                          |
+| TabaPay  | Debit card funding (AFT) and card cash-out (OCT)         | Visa Direct / Mastercard Send |
+| Dwolla   | Bank funding and bank cash-out                           | RTP / FedNow                  |
+
+Architecture model:
+
+```
+User Device
+   │
+   ├─ Android Keyboard (Kotlin)
+   └─ Companion App (React Native)
+
+Backend (Fastify / TypeScript)
+   │
+   ├─ Plaid  → account authentication
+   │
+   ├─ TabaPay → card rails
+   │
+   ├─ Dwolla → bank rails
+   │
+   └─ Alviere → wallet ledger
+```
+
+---
+
+# 2. Integration Order (Required)
+
+Provider integration must occur in this order:
+
+1. **Alviere**
+2. **Plaid**
+3. **TabaPay**
+4. **Dwolla**
+
+Reason:
+
+* Wallet ledger must exist before funds can move.
+* Plaid must generate tokens for routing providers.
+* Card/bank processors rely on those tokens.
+
+---
+
+# 3. Alviere Integration
+
+## Purpose
+
+Alviere acts as the **system of record ledger**.
+
+Responsibilities:
+
+* KYC / AML
+* wallet accounts
+* FBO ledger
+* internal transfers
+
+MoneyMsg never stores:
+
+* SSN
+* government ID
+
+These are proxied to Alviere only.
+
+---
+
+## Key Objects
+
+```
+Member
+Account
+Ledger balance
+Book transfer
+```
+
+---
+
+## Create Member + Wallet
+
+Endpoint:
+
+```
+POST /members
+```
+
+Payload:
+
+```json
+{
+  "firstName": "First",
+  "lastName": "Last",
+  "dateOfBirth": "YYYY-MM-DD",
+  "email": "user@email.com",
+  "phoneNumber": "+12345678900",
+  "governmentId": {
+    "type": "SSN",
+    "value": "000000000"
+  },
+  "address": {
+    "street1": "123 Main St",
+    "city": "Austin",
+    "state": "TX",
+    "postalCode": "78701",
+    "countryCode": "US"
+  }
+}
+```
+
+Response:
+
+```
+memberId
+accountId
+kycStatus
+```
+
+---
+
+## Internal Wallet Transfer
+
+Used when a payment deep link is claimed.
+
+Endpoint:
+
+```
+POST /transfers
+```
+
+Example:
+
+```json
+{
+  "sourceAccountId": "sender_wallet",
+  "destinationAccountId": "receiver_wallet",
+  "amount": "25.00",
+  "currency": "USD"
+}
+```
+
+Cost:
+
+```
+$0
+```
+
+This is the core economic advantage of the architecture.
+
+---
+
+# 4. Plaid Integration
+
+## Purpose
+
+Plaid performs **external account authentication** and creates **processor tokens** used by TabaPay and Dwolla.
+
+This keeps the platform **outside PCI scope**.
+
+---
+
+## Step 1 — Create Link Token
+
+Endpoint:
+
+```
+POST /link/token/create
+```
+
+Request:
+
+```json
+{
+  "client_name": "MoneyMsg",
+  "country_codes": ["US"],
+  "language": "en",
+  "products": ["auth"],
+  "user": {
+    "client_user_id": "userId"
+  }
+}
+```
+
+Response:
+
+```
+link_token
+```
+
+---
+
+## Step 2 — Exchange Public Token
+
+After user completes Plaid Link.
+
+```
+POST /item/public_token/exchange
+```
+
+Response:
+
+```
+access_token
+item_id
+```
+
+---
+
+## Step 3 — Create Processor Token
+
+For **card routing (TabaPay)**
+
+```
+POST /processor/token/create
+```
+
+Example:
+
+```json
+{
+  "access_token": "...",
+  "account_id": "...",
+  "processor": "tabapay"
+}
+```
+
+For **bank routing (Dwolla)**
+
+```
+processor: "dwolla"
+```
+
+Response:
+
+```
+processor_token
+```
+
+Stored in:
+
+```
+funding_sources.processor_token
+```
+
+---
+
+# 5. TabaPay Integration
+
+Handles **card rails**.
+
+Functions:
+
+```
+Debit card load
+Debit card cash-out
+```
+
+Networks used:
+
+```
+Visa Direct
+Mastercard Send
+```
+
+---
+
+## Card Load (AFT)
+
+Flow:
+
+```
+User debit card
+ → TabaPay AFT
+ → Alviere wallet credit
+```
+
+Endpoint:
+
+```
+POST /transactions
+```
+
+Example:
+
+```json
+{
+  "transactionType": "AFT",
+  "amount": "25.00",
+  "currency": "USD",
+  "source": {
+    "processorToken": "plaid_token"
+  }
+}
+```
+
+Funds arrive:
+
+```
+< 30 seconds
+```
+
+---
+
+## Card Cash-Out (OCT)
+
+Flow:
+
+```
+Alviere wallet
+ → TabaPay OCT
+ → User debit card
+```
+
+Example:
+
+```json
+{
+  "transactionType": "OCT",
+  "amount": "25.00",
+  "destination": {
+    "processorToken": "plaid_token"
+  }
+}
+```
+
+Settlement time:
+
+```
+minutes
+```
+
+---
+
+# 6. Dwolla Integration
+
+Dwolla handles **bank rails**.
+
+Supported networks:
+
+```
+RTP Network
+FedNow
+ACH fallback
+```
+
+---
+
+## Bank Load
+
+Flow:
+
+```
+User bank
+ → Dwolla RfP
+ → Alviere wallet
+```
+
+Endpoint:
+
+```
+POST /transfers
+```
+
+Example:
+
+```json
+{
+  "source": {
+    "processorToken": "plaid_dwolla_token"
+  },
+  "destination": {
+    "type": "alviereWallet"
+  },
+  "amount": {
+    "value": "25.00",
+    "currency": "USD"
+  }
+}
+```
+
+Settlement:
+
+```
+~5–20 seconds
+```
+
+---
+
+## Bank Cash-Out
+
+Flow:
+
+```
+Alviere wallet
+ → Dwolla RTP
+ → User bank
+```
+
+Example:
+
+```json
+{
+  "source": {
+    "type": "alviereWallet"
+  },
+  "destination": {
+    "processorToken": "plaid_dwolla_token"
+  },
+  "amount": {
+    "value": "25.00",
+    "currency": "USD"
+  }
+}
+```
+
+---
+
+# 7. Full Transaction Flow Mapping
+
+## Flow 1A — Card Load
+
+```
+User
+ ↓
+Plaid Link
+ ↓
+processor_token (TabaPay)
+ ↓
+TabaPay AFT
+ ↓
+Alviere wallet credit
+```
+
+---
+
+## Flow 1B — Bank Load
+
+```
+User
+ ↓
+Plaid Link
+ ↓
+processor_token (Dwolla)
+ ↓
+Dwolla RTP
+ ↓
+Alviere wallet credit
+```
+
+---
+
+## Flow 2 — P2P Transfer
+
+```
+Sender wallet
+ ↓
+Intent created
+ ↓
+Deep link injected into message
+ ↓
+Recipient opens companion app
+ ↓
+Alviere book transfer
+```
+
+Cost:
+
+```
+$0
+```
+
+---
+
+## Flow 3A — Card Cash Out
+
+```
+Alviere wallet
+ ↓
+TabaPay OCT
+ ↓
+Debit card
+```
+
+---
+
+## Flow 3B — Bank Cash Out
+
+```
+Alviere wallet
+ ↓
+Dwolla RTP
+ ↓
+Bank account
+```
+
+---
+
+# 8. Webhooks Required
+
+Each processor must notify the backend of transaction state.
+
+## TabaPay
+
+Events:
+
+```
+transaction.completed
+transaction.failed
+```
+
+---
+
+## Dwolla
+
+Events:
+
+```
+transfer_completed
+transfer_failed
+transfer_cancelled
+```
+
+---
+
+## Webhook Security
+
+All webhook handlers must:
+
+```
+verify signature
+validate event idempotency
+update transaction status
+```
+
+---
+
+# 9. Idempotency Strategy
+
+Critical for financial safety.
+
+Each external transfer must include:
+
+```
+idempotency_key
+```
+
+Suggested format:
+
+```
+tx_{uuid}
+```
+
+Stored in:
+
+```
+transactions.id
+```
+
+---
+
+# 10. Failure Handling
+
+Common failures:
+
+| Failure            | Cause     |
+| ------------------ | --------- |
+| insufficient funds | card/bank |
+| KYC rejected       | Alviere   |
+| network timeout    | processor |
+| duplicate transfer | retry     |
+
+Strategy:
+
+```
+status = failed
+failure_reason = provider_message
+```
+
+---
+
+# 11. Security Boundaries
+
+Sensitive data never stored locally:
+
+```
+SSN
+bank credentials
+card numbers
+```
+
+Only store:
+
+```
+processor_token
+institution_name
+account_mask
+```
+
+---
+
+# 12. Minimum Production Configuration
+
+Environment variables:
+
+```
+ALVIERE_API_KEY
+PLAID_CLIENT_ID
+PLAID_SECRET
+TABAPAY_API_KEY
+DWOLLA_APP_KEY
+DWOLLA_APP_SECRET
+DATABASE_URL
+```
+
+---
+
+# 13. Operational Risk Notes
+
+| Risk           | Mitigation             |
+| -------------- | ---------------------- |
+| card fraud     | Alviere KYC            |
+| double spend   | intent hold            |
+| replay attacks | idempotency keys       |
+| stale links    | 24h expiration sweeper |
+
+---
+
+# 14. Final Architecture Summary
+
+```
+Card rails → TabaPay
+Bank rails → Dwolla
+Wallet ledger → Alviere
+Account auth → Plaid
+```
+
+Internal P2P transfers:
+
+```
+Alviere book transfers
+cost = $0
+```
+
+This is the structural reason the business model works.
+
+---
