@@ -30,6 +30,7 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
+  app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
   app.removeAllContentTypeParsers();
   app.addContentTypeParser("*", { parseAs: "string" }, (req, body, done) => {
   app.addContentTypeParser("*", { parseAs: "string", bodyLimit: 1048576 }, (req, body, done) => {
@@ -74,6 +75,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
+        const ok = verifyHmac(raw || "", signature, config.secret, undefined);
         const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
         const ok = verifyHmac(raw || "", signature, config.secret, undefined);
         const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
