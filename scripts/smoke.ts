@@ -8,7 +8,8 @@ const server = spawn("bun", ["dist/app/server.js"], {
   stdio: "inherit",
   env: {
     ...process.env,
-    PORT: port
+    PORT: port,
+    DISABLE_SWEEPERS: "true"
   }
 });
 
