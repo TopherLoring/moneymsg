@@ -14,7 +14,7 @@ Keyboard-first, not keyboard-only.
 
 | Field | Value |
 |---|---|
-| Version | v1.0.2 |
+| Version | v1.1.0 |
 | Updated | 2026.04.18 |
 | Status | In Progress |
 | Parent | TopherLoring Industries |
@@ -22,6 +22,12 @@ Keyboard-first, not keyboard-only.
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.1.0 — 2026.04.18
+
+- Updated repository entry points to reflect root `TODO.md` as the single canonical plan-and-progress authority
+- Reframed `docs/tasks/` as supporting task-pack documentation instead of a competing authority layer
+- Removed stale guidance that pointed execution authority to multiple backlog files
 
 ### v1.0.2 — 2026.04.18
 
@@ -88,7 +94,7 @@ The current repo direction is:
 - layer in wallet summary, intent parsing, recipient resolution, and payment artifacts next
 - add support, disputes, admin, notifications, compliance, fraud, and recovery before calling the product production-safe
 
-The execution source of truth is the milestone backlog under `docs/tasks/`.
+The canonical execution plan and progress tracker is root `TODO.md`.
 
 ## Fee Model
 
@@ -130,11 +136,15 @@ Current package/runtime signals:
 ### Start Here
 
 - `README.md` — repository entry point
-- `TODO.md` — root discovery pointer
-- `docs/tasks/TODO.md` — canonical task navigator
-- `docs/tasks/00_MASTER_BACKLOG.md` — canonical execution backlog index
+- `TODO.md` — canonical plan and progress tracker
 - `docs/releases/NEWS.md` — release and repo-change log
 - `CHANGELOG.md` — repo change history
+
+### Supporting Task Documentation
+
+- `docs/tasks/TODO.md` — support index for the milestone packs
+- `docs/tasks/00_MASTER_BACKLOG.md` — reference overview of the milestone pack structure
+- `docs/tasks/01_M0_SECURITY_BLOCKERS.md` through `docs/tasks/14_M13_SPEC_REWRITE.md` — supporting implementation packs
 
 ### Architecture and Standards
 
@@ -218,9 +228,8 @@ Do not skip the blocker work.
 12. Add payment artifact lifecycle
 13. Add support, disputes, admin, notifications, compliance, fraud, and recovery
 
-## Canonical Backlog Layout
+## Supporting Task-Pack Layout
 
-- `docs/tasks/00_MASTER_BACKLOG.md` — master dependency chain and beta path
 - `docs/tasks/01_M0_SECURITY_BLOCKERS.md` — auth, env, rate limiting, logging
 - `docs/tasks/02_M1_BACKEND_HARDENING.md` — risk, validation, reconciliation, provider wrappers
 - `docs/tasks/03_M2_DATA_MODEL.md` — metadata, idempotency, funding sources
@@ -258,7 +267,7 @@ Use `docs/architecture/REPOSITORY-STANDARDS.md` as the target map, not as a clai
 
 ## Working Blueprint
 
-The active blueprint direction is captured in the MoneyMsg project blueprint and mirrored into the repo task system.
+The active blueprint direction is captured in the MoneyMsg project blueprint and mirrored into the canonical task system.
 
 Product model summary:
 
