@@ -15,7 +15,13 @@ type SignatureConfig = {
   encoding?: "base64" | "hex";
 };
 
-function verifyHmac(body: string, signature: string | undefined, secret: string, timestamp?: string, encoding: crypto.BinaryToTextEncoding = "hex"): boolean {
+function verifyHmac(
+  body: string,
+  signature: string | undefined,
+  secret: string,
+  timestamp?: string,
+  encoding: crypto.BinaryToTextEncoding = "hex",
+): boolean {
   if (!signature) return false;
   const hmac = crypto.createHmac("sha256", secret);
   if (timestamp) {
@@ -32,7 +38,7 @@ function verifyHmac(body: string, signature: string | undefined, secret: string,
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
-  app.addContentTypeParser("*/*", { parseAs: "string" }, (req, body, done) => {
+  app.addContentTypeParser("*/*", { parseAs: "string", bodyLimit: 1048576 }, (_req, body, done) => {
     done(null, body);
   });
 
