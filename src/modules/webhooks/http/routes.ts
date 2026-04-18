@@ -72,12 +72,7 @@ export async function webhookRoutes(app: FastifyInstance) {
         const ok = verifyHmac(raw || "", signature, config.secret);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
 
-        let parsed: Record<string, any>;
-        try {
-          parsed = JSON.parse(raw || "{}");
-        } catch (e) {
-          return reply.status(400).send({ error: "Invalid JSON payload", code: "VALIDATION_FAILED" });
-        }
+        const parsed = JSON.parse(raw || "{}");
         const event = normalizeEvent(provider, parsed);
         if (!event) return reply.send({ ignored: true });
 
