@@ -4,14 +4,21 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
-| Updated | 2026.04.17 |
-| Status | Review |
+| Version | v1.1.0 |
+| Updated | 2026.04.18 |
+| Status | In Progress |
 | Parent | TopherLoring Industries |
 | Project | MoneyMsg |
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.1.0 — 2026.04.18
+
+- Reframed this file as the canonical task navigator instead of a standalone backlog
+- Linked the full milestone backlog set under `docs/tasks/`
+- Added current governance tasks for backlog alignment and cleanup
+- Clarified that `00_MASTER_BACKLOG.md` is the execution source of truth
 
 ### v1.0.0 — 2026.04.17
 
@@ -21,16 +28,44 @@
 
 ## Purpose
 
-This is the canonical repo task list for MoneyMsg documentation governance and repository cleanup work.
+This file is the canonical task navigator for MoneyMsg.
 
-## Active Tasks
+It does **not** replace the full implementation backlog.
 
-### P0 — Repo Hygiene
+Use this file to find the correct task document quickly, track repo-governance work, and keep task ownership centralized.
 
-- [ ] remove tracked `node_modules/`
-- [ ] remove tracked `dist/`
-- [ ] remove any copied `.git/` directories inside imported folders
-- [ ] delete temporary unpacked exports that should not live in source control
+## Canonical Task Files
+
+### Primary Execution Source
+
+- `docs/tasks/00_MASTER_BACKLOG.md` — master backlog index, dependency chain, beta path, non-negotiables
+
+### Milestone Backlog Files
+
+- `docs/tasks/01_M0_SECURITY_BLOCKERS.md` — auth, env, rate limiting, logging
+- `docs/tasks/02_M1_BACKEND_HARDENING.md` — risk engine, validation, reconciliation, provider wrappers
+- `docs/tasks/03_M2_DATA_MODEL.md` — metadata, idempotency, funding-source lifecycle
+- `docs/tasks/04_M3_IME_FOUNDATION.md` — wallet summary, previews, deep links
+- `docs/tasks/05_M4_ORCHESTRATION.md` — intent parsing, recipient resolution, orchestration schema
+- `docs/tasks/06_M5_PAYMENT_OBJECTS.md` — conversation-native payment artifacts
+- `docs/tasks/07_M6_SUPPORT_OPS.md` — support, disputes, admin operations
+- `docs/tasks/08_M7_NOTIFICATIONS_RECOVERY.md` — notifications, account recovery, sessions
+- `docs/tasks/09_M8_COMPLIANCE_FRAUD.md` — compliance and fraud operations
+- `docs/tasks/10_M9_SPLIT_REMINDERS.md` — split flows and reminder engine
+- `docs/tasks/11_M10_CI_HYGIENE.md` — CI gates, worker lifecycle, repo hygiene
+- `docs/tasks/12_M11_ANDROID_IME.md` — Android IME implementation track
+- `docs/tasks/13_M12_COMPANION_APP.md` — companion app expansion
+- `docs/tasks/14_M13_SPEC_REWRITE.md` — blueprint/spec rewrite and supporting design docs
+
+## Current Governance Tasks
+
+### P0 — Backlog Alignment
+
+- [x] create canonical milestone backlog set under `docs/tasks/`
+- [x] commit master backlog and milestone task files into the repository
+- [x] convert this file into a navigator instead of a competing partial backlog
+- [ ] align `CHANGELOG.md` and `docs/releases/NEWS.md` with the new canonical task structure
+- [ ] archive or supersede legacy backlog files that are no longer the source of truth
 
 ### P0 — Documentation Canonicalization
 
@@ -54,6 +89,7 @@ This is the canonical repo task list for MoneyMsg documentation governance and r
 - [ ] link all canonical business documents from `docs/business/BUSINESS-DOCUMENTS.md`
 - [ ] record structural milestones in `docs/releases/NEWS.md`
 - [ ] keep `CHANGELOG.md` current with every governed documentation change
+- [ ] link legacy task entry points to `docs/tasks/00_MASTER_BACKLOG.md`
 
 ### P2 — Agent Enablement
 
@@ -64,8 +100,13 @@ This is the canonical repo task list for MoneyMsg documentation governance and r
 
 ## Execution Rule
 
-When a task is completed, update this file, the changelog, and the relevant architecture or release document in the same pass.
+When a task is completed, update the relevant milestone file, this navigator when needed, and the associated changelog or release document in the same pass.
 
 ## Done Criteria
 
-This register is complete when the repo no longer contains tracked generated junk, active documents live in canonical paths, and the source tree reflects business ownership instead of catch-all folder names.
+This navigator is healthy when:
+
+- task discovery is unambiguous
+- the master backlog and milestone files remain the only active execution source of truth
+- legacy or duplicate backlog files are clearly archived or marked superseded
+- repo-governance tasks stay separate from product implementation tasks
