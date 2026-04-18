@@ -75,6 +75,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           return reply.status(401).send({ error: "Stale webhook", code: "UNAUTHORIZED" });
         }
 
+        const ok = verifyHmac(raw || "", signature, config.secret);
         const ok = verifyHmac(raw || "", signature, config.secret, undefined);
         const ok = verifyHmac(raw || "", signature, config.secret, timestamp);
         if (!ok) return reply.status(401).send({ error: "Invalid signature", code: "UNAUTHORIZED" });
@@ -122,15 +123,36 @@ export async function webhookRoutes(app: FastifyInstance) {
 
         setContextField("providerCorrelationId", event.providerRef);
 
-        if (loggedId) {
-          await reconcileWebhookEvent({
-            eventId: loggedId,
+        const [logged] = await db
+          .insert(webhookEvents)
+          .values({
+            provider,
+            eventType: event.eventType,
             providerRef: event.providerRef,
-            outcome: event.outcome,
-            reason: event.reason,
-          });
-          await finalizeWebhookEvent(loggedId);
+            payload: raw || "",
+            correlationRequestId: getCorrelationMeta().requestId,
+          })
+          .onConflictDoNothing({ target: [webhookEvents.provider, webhookEvents.providerRef, webhookEvents.eventType] })
+          .returning({ id: webhookEvents.id });
+
+        if (!logged) {
+          return reply.send({ received: true, duplicate: true });
         }
+
+        // Fire-and-forget background processing
+        (async () => {
+          try {
+            await reconcileWebhookEvent({
+              eventId: logged.id,
+              providerRef: event.providerRef,
+              outcome: event.outcome,
+              reason: event.reason,
+            });
+            await finalizeWebhookEvent(logged.id);
+          } catch (err) {
+            // Error is logged by reconcileWebhookEvent internally
+          }
+        })();
 
         return reply.send({ received: true });
       } catch (err) {
