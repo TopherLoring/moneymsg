@@ -52,11 +52,11 @@ export async function plaidRoutes(app: FastifyInstance) {
           required: ["userId", "publicToken", "accountId", "routingTarget", "institutionName", "mask"],
           properties: {
             userId: { type: "string", format: "uuid" },
-            publicToken: { type: "string" },
-            accountId: { type: "string" },
+            publicToken: { type: "string", minLength: 1 },
+            accountId: { type: "string", minLength: 1 },
             routingTarget: { type: "string", enum: ["tabapay", "dwolla"] },
-            institutionName: { type: "string" },
-            mask: { type: "string" },
+            institutionName: { type: "string", minLength: 1, maxLength: 128 },
+            mask: { type: "string", pattern: "^\\d{4}$" },
           },
         },
       },
@@ -78,6 +78,14 @@ export async function plaidRoutes(app: FastifyInstance) {
         // Verify user exists
         const [user] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
         if (!user) throw new AppError("User not found", "NOT_FOUND", 404);
+
+        const duplicate = await db
+          .select({ id: fundingSources.id })
+          .from(fundingSources)
+          .where(eq(fundingSources.plaidItemId, accountId));
+        if (duplicate.length) {
+          throw new AppError("Funding source already linked", "CONFLICT", 409);
+        }
 
         const { processorToken, itemId } = await exchangePublicToken({ publicToken, accountId, routingTarget });
 

@@ -18,6 +18,7 @@ import { bookTransfer } from "../../../integrations/alviere/client";
 import Decimal from "decimal.js";
 import { requireAuth, assertOwnershipOrElevated } from "../../../shared/authz";
 import { RATE_LIMITS } from "../../../shared/rateLimit";
+import { getCorrelationMeta, setContextField } from "../../../shared/requestContext";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../../../domain/risk";
 import { assertRiskAllow } from "../../../domain/risk/scorer";
 import { deviceInfoSchema, riskMetaSchema } from "../../../shared/schemas";
@@ -259,9 +260,11 @@ export async function transferRoutes(app: FastifyInstance) {
 
         let providerRef: string | undefined;
         if (source.routingProvider === "tabapay") {
+          if (!env.TABAPAY_ENABLED) throw new AppError("TabaPay not enabled", "PROVIDER_ERROR", 503);
           const res = await pullFromCard({ processorToken: source.processorToken, amount: gross });
           providerRef = res.id;
         } else if (source.routingProvider === "dwolla") {
+          if (!env.DWOLLA_ENABLED) throw new AppError("Dwolla not enabled", "PROVIDER_ERROR", 503);
           if (!env.DWOLLA_DEST_FUNDING_SOURCE) {
             throw new AppError("DWOLLA_DEST_FUNDING_SOURCE not configured", "PROVIDER_ERROR", 500);
           }
@@ -269,11 +272,13 @@ export async function transferRoutes(app: FastifyInstance) {
             sourceFundingSource: source.processorToken,
             destinationFundingSource: env.DWOLLA_DEST_FUNDING_SOURCE,
             amount: gross,
+            correlationId: getCorrelationMeta().requestId,
           });
           providerRef = res.id;
         } else {
           throw new AppError("Unsupported routing provider", "PROVIDER_ERROR", 400);
         }
+        if (providerRef) setContextField("providerCorrelationId", providerRef);
 
         const intent = await db.transaction(async (tx) => {
           await tx.insert(transactions).values({
@@ -396,6 +401,7 @@ export async function transferRoutes(app: FastifyInstance) {
         if (!recipientWallet) throw new AppError("Recipient wallet not found", "NOT_FOUND", 404);
         if (recipientWallet.status !== "active") throw new AppError("Recipient wallet not active", "CONFLICT", 409);
 
+        setContextField("transactionId", intentId);
         try {
           await bookTransfer({
             fromAccountId: senderWallet.alviereAccountId,

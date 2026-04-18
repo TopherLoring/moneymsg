@@ -1,5 +1,6 @@
 import { env } from "../../config/env";
-import { AppError } from "../../shared/errors";
+import { AppError, ProviderError } from "../../shared/errors";
+import { getCorrelationMeta } from "../../shared/requestContext";
 
 type KycResult = {
   memberId: string;
@@ -20,7 +21,12 @@ export async function submitKyc(kycData: Record<string, unknown>): Promise<KycRe
   const data = (await res.json().catch(() => ({}))) as Partial<KycResult> & { message?: string; status?: string };
 
   if (!res.ok) {
-    throw new AppError(data?.message || "Alviere KYC failed", "PROVIDER_ERROR", res.status);
+    throw new ProviderError({
+      provider: "alviere",
+      message: data?.message || "KYC submission failed",
+      providerStatus: res.status,
+      correlationId: getCorrelationMeta().requestId,
+    });
   }
 
   if (!data.memberId || !data.accountId || !data.kycStatus) {

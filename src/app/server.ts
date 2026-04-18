@@ -11,6 +11,9 @@ import { requestRoutes } from "../modules/request/http/routes";
 import { statusRoutes } from "../modules/status/http/routes";
 import { port, env } from "../config/env";
 import { pool } from "../infrastructure/db";
+import "../jobs/intentSweeper";
+import "../jobs/requestSweeper";
+import "../jobs/reconciliationSweeper";
 import { logger } from "../infrastructure/logging/logger";
 import { withRequestContext, generateRequestId } from "../shared/requestContext";
 import { registerRateLimiting } from "../shared/rateLimit";
@@ -22,11 +25,8 @@ const app = Fastify({
 });
 
 // ─── Correlation ID context ────────────────────────────────────────
-app.addHook("onRequest", async (request, _reply) => {
-  const requestId = request.id as string;
-  // Wrap the entire request lifecycle in an async context
-  // so downstream code can call getRequestContext()
-  (request as any)._ctxRequestId = requestId;
+app.addHook("onRequest", (request, _reply, done) => {
+  withRequestContext({ requestId: request.id as string, startedAt: Date.now() }, done);
 });
 
 // Attach correlation ID to every response header
@@ -38,7 +38,7 @@ app.addHook("onSend", async (request, reply, _payload) => {
 // ─── Rate limiting ─────────────────────────────────────────────────
 registerRateLimiting(app).then(() => {
   // ─── Routes ────────────────────────────────────────────────────────
-  app.register(plaidRoutes);
+  if (env.PLAID_ENABLED) app.register(plaidRoutes);
   app.register(kycRoutes);
   app.register(walletRoutes);
   app.register(transferRoutes);
