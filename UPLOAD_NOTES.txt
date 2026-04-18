@@ -1,0 +1,24 @@
+MoneyMsg standardized repository upload bundle
+
+What changed:
+- Flattened the backend package from App Development/ into the repository root
+- Standardized runtime source layout under src/app, src/config, src/domain, src/integrations, src/infrastructure, src/jobs, src/modules, and src/shared
+- Moved Bun runtime files, scripts, tests, Dockerfile, drizzle config, and migration assets to root
+- Archived legacy package-local docs and unpacked duplicates under docs/archive/
+
+Validation completed locally with Bun 1.3.12:
+- bun run lint
+- bun run typecheck
+- bun test
+- bun run build
+- bun run db:check
+- bun run smoke
+- bun run ci
+
+Hidden files included in this archive:
+- .gitignore
+- .env.example
+- .github/workflows/extract_archive.yml
+- .github/workflows/ci.yml
+
+After you upload this refactored tree, send a message and the remaining hidden-file pushes and live-repo audit can be done against main.
