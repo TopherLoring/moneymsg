@@ -17,7 +17,9 @@ export { requireAuth, requireRole, assertOwnershipOrElevated } from "./authz";
  */
 export function requireWebhookSecret(request: FastifyRequest): void {
   const shared = env.WEBHOOK_SHARED_SECRET;
-  if (!shared) return;
+  if (!shared) {
+    throw new AppError("Webhook secret not configured", "INTERNAL_ERROR", 500);
+  }
   const header = request.headers["x-webhook-secret"] as string | undefined;
   if (!header || header !== shared) {
     throw new AppError("Unauthorized webhook", "UNAUTHORIZED", 401);
