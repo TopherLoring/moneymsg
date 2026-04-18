@@ -7,7 +7,9 @@ import { fundingSources, transactions, wallets } from "../db/schema";
 import { AppError, toErrorResponse } from "../lib/errors";
 import { INTENT_TTL_HOURS, SUPPORTED_CURRENCY } from "../lib/constants";
 import { calculateGrossFromNet } from "../lib/fees";
-import { requireApiKey } from "../lib/auth";
+import { requireAuth, assertOwnershipOrElevated } from "../lib/authz";
+import { RATE_LIMITS } from "../lib/rateLimit";
+import { assertRequestNotAbusive } from "../lib/abuse";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../lib/risk";
 import { assertRiskAllow } from "../lib/riskScorer";
 import { pullFromCard } from "../services/tabapay";
@@ -24,6 +26,8 @@ export async function requestRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/request/create",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.requestCreate },
       schema: {
         body: {
           type: "object",
@@ -41,7 +45,6 @@ export async function requestRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId, amount, idempotencyKey, riskMeta, deviceInfo, ipAddress } = request.body as {
           userId: string;
           amount: string;
@@ -50,6 +53,9 @@ export async function requestRoutes(app: FastifyInstance) {
           deviceInfo?: Record<string, unknown>;
           ipAddress?: string;
         };
+
+        assertOwnershipOrElevated(request, userId);
+        assertRequestNotAbusive(userId);
 
         const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId));
         if (!wallet) throw new AppError("Wallet not found", "NOT_FOUND", 404);
@@ -119,6 +125,8 @@ export async function requestRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/request/pay",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.transact },
       schema: {
         body: {
           type: "object",
@@ -137,7 +145,6 @@ export async function requestRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { requestId, payerUserId, fundingSourceId, idempotencyKey, riskMeta, deviceInfo, ipAddress } = request.body as {
           requestId: string;
           payerUserId: string;
@@ -147,6 +154,8 @@ export async function requestRoutes(app: FastifyInstance) {
           deviceInfo?: Record<string, unknown>;
           ipAddress?: string;
         };
+
+        assertOwnershipOrElevated(request, payerUserId);
 
         const [reqRow] = await db.select().from(paymentRequests).where(eq(paymentRequests.id, requestId));
         if (!reqRow) throw new AppError("Request not found", "NOT_FOUND", 404);

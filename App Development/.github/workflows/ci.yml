@@ -22,6 +22,7 @@ jobs:
       - name: Build
         env:
           DATABASE_URL: postgres://user:pass@localhost:5432/db
+          DB_SSL_MODE: disable
           ALVIERE_API_KEY: dummy
           ALVIERE_API_URL: https://api.alviere.com
           PLAID_CLIENT_ID: dummy
@@ -36,7 +37,7 @@ jobs:
           DWOLLA_WEBHOOK_SECRET: dummy
           DWOLLA_DEST_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
           DWOLLA_SOURCE_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
-          API_KEY: test
+          JWT_SECRET: ci-test-secret-must-be-at-least-32-chars
           WEBHOOK_SHARED_SECRET: test
           WEBHOOK_MAX_SKEW_SECONDS: 300
         run: npm run build
@@ -44,6 +45,7 @@ jobs:
       - name: Smoke /health
         env:
           DATABASE_URL: postgres://user:pass@localhost:5432/db
+          DB_SSL_MODE: disable
           ALVIERE_API_KEY: dummy
           ALVIERE_API_URL: https://api.alviere.com
           PLAID_CLIENT_ID: dummy
@@ -58,7 +60,7 @@ jobs:
           DWOLLA_WEBHOOK_SECRET: dummy
           DWOLLA_DEST_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
           DWOLLA_SOURCE_FUNDING_SOURCE: https://api.dwolla.com/funding-sources/dummy
-          API_KEY: test
+          JWT_SECRET: ci-test-secret-must-be-at-least-32-chars
           WEBHOOK_SHARED_SECRET: test
           WEBHOOK_MAX_SKEW_SECONDS: 300
           PORT: 8080

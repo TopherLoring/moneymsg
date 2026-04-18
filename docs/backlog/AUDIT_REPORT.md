@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Version | v1.0.0 |
+| Version | v1.1.0 |
 | Updated | 2026.04.17 |
 | Status | Final |
 | Parent | TopherLoring Industries |
@@ -10,6 +10,15 @@
 | Author | Christopher Rowden |
 
 ## Changelog
+
+### v1.1.0 — 2026.04.17
+
+- Updated audit to reflect Phase A implementation
+- 0.1 Auth model: DONE — JWT auth, roles, ownership checks on all routes
+- 0.2 Env/config: DONE — full Zod validation, explicit DB SSL
+- 0.3 Rate limiting: DONE — global + route-level + abuse throttling
+- 0.4 Logging/redaction/correlation: DONE — pino with redaction, AsyncLocalStorage context
+- 1.3 HMAC fix: DONE — buffer length precheck added
 
 ### v1.0.0 — 2026.04.17
 
@@ -41,59 +50,62 @@
 | Metric | Count |
 |---|---|
 | Total milestones | 37 |
-| Complete | 0 |
-| Partial | 3 |
-| Untouched | 34 |
+| Complete | 5 |
+| Partial | 0 |
+| Untouched | 32 |
 
-### Critical Findings
+### Phase A Status — COMPLETE
 
-- **Open KYC endpoint** — zero auth, any caller can submit KYC for any user
-- **Open Plaid linking** — API key present but no ownership verification; any caller can attach funding sources to any userId
-- **Placeholder risk engine** — `evaluateRisk()` always returns `{ allow: true }`
-- **PII logging** — `Fastify({ logger: true })` with no redaction config
-- **Zero rate limiting** — no `rateLimit.ts`, no `abuse.ts`, no middleware
-- **HMAC buffer crash bug** — `timingSafeEqual` called without length precheck; malformed signatures throw 500 instead of 401
+| Milestone | Status |
+|---|---|
+| 0.1 Auth model | ✅ DONE — JWT auth, roles, ownership on all 7 route files |
+| 0.2 Env/config | ✅ DONE — full Zod validation, explicit DB SSL, .env.example updated |
+| 0.3 Rate limiting | ✅ DONE — global + route-level limits + abuse throttling |
+| 0.4 Logging/redaction | ✅ DONE — pino with PII redaction, correlation IDs |
+| 1.3 HMAC fix | ✅ DONE — buffer length precheck before timingSafeEqual |
+
+### Remaining Critical Findings
+
+- ~~Open KYC endpoint~~ — **FIXED**: JWT auth + ownership check
+- ~~Open Plaid linking~~ — **FIXED**: JWT auth + ownership + user existence check
+- **Placeholder risk engine** — `evaluateRisk()` still returns `{ allow: true }`
+- ~~PII logging~~ — **FIXED**: pino with redaction paths
+- ~~Zero rate limiting~~ — **FIXED**: global + route-level + abuse throttling
+- ~~HMAC buffer crash bug~~ — **FIXED**: length precheck added
 - **Zero test coverage** — no `tests/` directory exists
 - **CI is build+smoke only** — no lint, no tests, no migration validation
 
 ---
 
-## Phase A — Security Blockers (M0)
+## Phase A — Security Blockers (M0) — ✅ COMPLETE
 
-### 0.1 Lock Down API Auth Model — UNTOUCHED
+### 0.1 Lock Down API Auth Model — ✅ DONE
 
-| What exists | What's missing |
-|---|---|
-| `requireApiKey()` — single shared `x-api-key` check | Real auth/session architecture |
-| Plaid routes call `requireApiKey()` | Ownership verification (caller ≠ target user) |
-| | KYC route has **zero auth** — completely unprotected |
-| | Role model (user/support/admin/service) |
-| | Session management |
-| | Token boundaries |
+- JWT-based auth via `src/lib/session.ts` and `src/lib/authz.ts`
+- Role model: user, support, admin, service
+- `requireAuth` preHandler on all 7 route files
+- `assertOwnershipOrElevated` on KYC, Plaid, transfer, wallet, request routes
+- Old `requireApiKey` removed from all routes
 
-**Evidence:** `src/lib/auth.ts` — 10 lines, single static key compare. `src/routes/kyc.ts` — no `requireApiKey` call. `src/routes/plaid.ts` — has `requireApiKey` but no `userId` ownership check.
+### 0.2 Fix Env & Config Safety — ✅ DONE
 
-### 0.2 Fix Env & Config Safety — PARTIAL
+- Zod schema expanded to 25+ vars including JWT_SECRET, webhook secrets, DB_SSL_MODE, NODE_ENV, LOG_LEVEL
+- Explicit DB SSL config with verify-ca/verify-full support
+- .env.example and CI workflow updated
 
-| What exists | What's missing |
-|---|---|
-| Zod schema validates provider API keys/URLs | `TABAPAY_WEBHOOK_SECRET` |
-| `PORT` optional | `DWOLLA_WEBHOOK_SECRET` |
-| | `API_KEY` |
-| | `WEBHOOK_SHARED_SECRET` |
-| | `WEBHOOK_MAX_SKEW_SECONDS` (numeric) |
-| | DB SSL mode/cert settings |
-| | App/session secrets |
+### 0.3 Rate Limiting & Abuse Throttling — ✅ DONE
 
-**Evidence:** `src/lib/env.ts` — validates 11 vars, misses 6+ security-critical ones. `src/db/index.ts` — implicit `rejectUnauthorized: false` on non-localhost.
+- `@fastify/rate-limit` with global 100/min baseline
+- Route-level presets: auth, kyc, plaid, transact, requestCreate, read, intent
+- In-memory abuse throttling for request/nudge spam
+- Per-recipient spam protection
 
-### 0.3 Rate Limiting & Abuse Throttling — UNTOUCHED
+### 0.4 Logging, Redaction, & Correlation IDs — ✅ DONE
 
-No rate limiting files, no middleware, no abuse detection.
-
-### 0.4 Logging, Redaction, & Correlation IDs — UNTOUCHED
-
-`Fastify({ logger: true })` — no `pino-redact`, no correlation ID middleware, no `requestContext.ts`.
+- Pino logger with PII redaction paths (auth headers, KYC, processor tokens, phone/email)
+- AsyncLocalStorage-based request context with correlation IDs
+- Response headers include x-request-id
+- Context fields: requestId, transactionId, userId, role
 
 ---
 
@@ -120,17 +132,15 @@ No rate limiting files, no middleware, no abuse detection.
 | `deviceInfoSchema: { type: "object", additionalProperties: true }` | KYC field validation |
 | KYC body: `kycData: { type: "object" }` | Plaid payload validation |
 
-### 1.3 Webhook & Reconciliation Hardening — PARTIAL
+### 1.3 Webhook & Reconciliation Hardening — PARTIAL (HMAC fix done)
 
 | What exists | What's missing |
 |---|---|
-| HMAC signature verification | Buffer length precheck (crash bug) |
-| Timestamp skew check | Logged/reconciled/finalized separation |
-| Basic dedup by provider+ref+type | Replay-safe reconciliation service |
-| Basic reconciliation (success/fail) | Reconciliation sweeper/retry worker |
-| Webhook event logging | Unresolved event monitoring |
-
-**Evidence:** `src/routes/webhooks.ts` — `timingSafeEqual(Buffer.from(digest), Buffer.from(signature))` with no length guard. `reconcileTransaction()` is inline, not a service.
+| HMAC signature verification | Logged/reconciled/finalized separation |
+| ✅ Buffer length precheck (fixed) | Replay-safe reconciliation service |
+| Timestamp skew check | Reconciliation sweeper/retry worker |
+| Basic dedup by provider+ref+type | Unresolved event monitoring |
+| Basic reconciliation (success/fail) | |
 
 ### 1.4 Provider Wrapper Quality — UNTOUCHED
 

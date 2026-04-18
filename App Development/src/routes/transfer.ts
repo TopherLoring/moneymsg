@@ -16,7 +16,8 @@ import { initiateBankTransfer } from "../services/dwolla";
 import { env } from "../lib/env";
 import { bookTransfer } from "../services/alviere";
 import Decimal from "decimal.js";
-import { requireApiKey } from "../lib/auth";
+import { requireAuth, assertOwnershipOrElevated } from "../lib/authz";
+import { RATE_LIMITS } from "../lib/rateLimit";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../lib/risk";
 import { assertRiskAllow } from "../lib/riskScorer";
 import { deviceInfoSchema, riskMetaSchema } from "../lib/schemas";
@@ -31,6 +32,8 @@ export async function transferRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/transfer/intent/wallet",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.transact },
       schema: {
         body: {
           type: "object",
@@ -47,7 +50,6 @@ export async function transferRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId, amount, riskMeta, deviceInfo, ipAddress } = request.body as {
           userId: string;
           amount: string;
@@ -55,6 +57,8 @@ export async function transferRoutes(app: FastifyInstance) {
           deviceInfo?: Record<string, unknown>;
           ipAddress?: string;
         };
+
+        assertOwnershipOrElevated(request, userId);
 
         const intent = await db.transaction(async (tx) => {
           const [wallet] = await tx
@@ -133,6 +137,8 @@ export async function transferRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/transfer/funded-p2p",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.transact },
       schema: {
         body: {
           type: "object",
@@ -151,7 +157,6 @@ export async function transferRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId, amount, fundingSourceId, idempotencyKey, riskMeta, deviceInfo, ipAddress } = request.body as {
           userId: string;
           amount: string;
@@ -161,6 +166,8 @@ export async function transferRoutes(app: FastifyInstance) {
           deviceInfo?: Record<string, unknown>;
           ipAddress?: string;
         };
+
+        assertOwnershipOrElevated(request, userId);
 
         const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId));
         if (!wallet) throw new AppError("Wallet not found", "NOT_FOUND", 404);
@@ -344,6 +351,8 @@ export async function transferRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/transfer/claim",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.transact },
       schema: {
         body: {
           type: "object",
@@ -357,8 +366,9 @@ export async function transferRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { intentId, recipientUserId } = request.body as { intentId: string; recipientUserId: string };
+
+        assertOwnershipOrElevated(request, recipientUserId);
 
         const [intent] = await db
           .update(transactions)

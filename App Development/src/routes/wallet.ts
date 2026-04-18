@@ -8,7 +8,8 @@ import { calculateGrossFromNet, calculateFeeFromGross } from "../lib/fees";
 import { pullFromCard, pushToCard } from "../services/tabapay";
 import { initiateBankTransfer, pushToBank } from "../services/dwolla";
 import { env } from "../lib/env";
-import { requireApiKey } from "../lib/auth";
+import { requireAuth, assertOwnershipOrElevated } from "../lib/authz";
+import { RATE_LIMITS } from "../lib/rateLimit";
 import { assertNotDuplicate, assertWithinDailyLimit } from "../lib/risk";
 import { assertRiskAllow } from "../lib/riskScorer";
 import { deviceInfoSchema, riskMetaSchema } from "../lib/schemas";
@@ -20,6 +21,8 @@ export async function walletRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/wallet/load",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.transact },
       schema: {
         body: {
           type: "object",
@@ -38,7 +41,6 @@ export async function walletRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId, amount, fundingSourceId, idempotencyKey, riskMeta, deviceInfo, ipAddress } = request.body as {
           userId: string;
           amount: string;
@@ -48,6 +50,8 @@ export async function walletRoutes(app: FastifyInstance) {
           deviceInfo?: Record<string, unknown>;
           ipAddress?: string;
         };
+
+        assertOwnershipOrElevated(request, userId);
 
         const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId));
         if (!wallet) throw new AppError("Wallet not found", "NOT_FOUND", 404);
@@ -150,6 +154,8 @@ export async function walletRoutes(app: FastifyInstance) {
   app.post(
     "/api/v1/wallet/cashout",
     {
+      preHandler: [requireAuth],
+      config: { rateLimit: RATE_LIMITS.transact },
       schema: {
         body: {
           type: "object",
@@ -168,7 +174,6 @@ export async function walletRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        requireApiKey(request);
         const { userId, amount, fundingSourceId, idempotencyKey, riskMeta, deviceInfo, ipAddress } = request.body as {
           userId: string;
           amount: string;
@@ -178,6 +183,8 @@ export async function walletRoutes(app: FastifyInstance) {
           deviceInfo?: Record<string, unknown>;
           ipAddress?: string;
         };
+
+        assertOwnershipOrElevated(request, userId);
 
         const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId));
         if (!wallet) throw new AppError("Wallet not found", "NOT_FOUND", 404);

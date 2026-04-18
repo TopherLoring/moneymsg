@@ -35,24 +35,24 @@ app.addHook("onSend", async (request, reply, _payload) => {
 });
 
 // ─── Rate limiting ─────────────────────────────────────────────────
-await registerRateLimiting(app);
+registerRateLimiting(app).then(() => {
+  // ─── Routes ────────────────────────────────────────────────────────
+  app.register(plaidRoutes);
+  app.register(kycRoutes);
+  app.register(walletRoutes);
+  app.register(transferRoutes);
+  app.register(requestRoutes);
+  app.register(statusRoutes);
+  app.register(webhookRoutes);
 
-// ─── Routes ────────────────────────────────────────────────────────
-app.register(plaidRoutes);
-app.register(kycRoutes);
-app.register(walletRoutes);
-app.register(transferRoutes);
-app.register(requestRoutes);
-app.register(statusRoutes);
-app.register(webhookRoutes);
+  app.get("/health", async () => ({ ok: true }));
 
-app.get("/health", async () => ({ ok: true }));
-
-// ─── Start ─────────────────────────────────────────────────────────
-app.listen({ port, host: "0.0.0.0" }, (err, address) => {
-  if (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
-  app.log.info(`Server listening at ${address}`);
+  // ─── Start ─────────────────────────────────────────────────────────
+  app.listen({ port, host: "0.0.0.0" }, (err, address) => {
+    if (err) {
+      app.log.error(err);
+      process.exit(1);
+    }
+    app.log.info(`Server listening at ${address}`);
+  });
 });
